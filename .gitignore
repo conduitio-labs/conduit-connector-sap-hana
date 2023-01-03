@@ -1,0 +1,9 @@
+# editors stuff
+.idea
+.vscode
+
+# binary
+conduit-connector-sap-hana
+
+# testing stuff
+*.rest
