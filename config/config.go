@@ -39,18 +39,18 @@ const (
 	KeyClientKeyFile string = "auth.clientKeyFile"
 )
 
-// AuthType type of auth.
-type AuthType string
+// authType type of auth.
+type authType string
 
 const (
 	// DSNAuthType name of DSN auth.
-	DSNAuthType AuthType = "DSN"
+	DSNAuthType authType = "DSN"
 	// BasicAuthType name of Basic auth.
-	BasicAuthType AuthType = "Basic"
+	BasicAuthType authType = "Basic"
 	// JWTAuthType name of JWT auth.
-	JWTAuthType AuthType = "JWT"
+	JWTAuthType authType = "JWT"
 	// X509AuthType name of X509 auth.
-	X509AuthType AuthType = "X509"
+	X509AuthType authType = "X509"
 )
 
 // Config contains configurable values
@@ -65,7 +65,7 @@ type Config struct {
 // AuthConfig auth parameters.
 type AuthConfig struct {
 	// Mechanism type of auth. Valid types: DSN, Basic, JWT, X509.
-	Mechanism AuthType
+	Mechanism authType
 	// Host link to db.
 	Host string
 	// DSN connection to SAP HANA database.
@@ -87,7 +87,7 @@ func Parse(cfg map[string]string) (Config, error) {
 	config := Config{
 		Table: cfg[KeyTable],
 		Auth: AuthConfig{
-			Mechanism:          AuthType(cfg[KeyAuthMechanism]),
+			Mechanism:          DSNAuthType,
 			Host:               cfg[KeyHost],
 			DSN:                cfg[KeyDSN],
 			Username:           cfg[KeyUsername],
@@ -96,6 +96,10 @@ func Parse(cfg map[string]string) (Config, error) {
 			ClientCertFilePath: cfg[KeyClientCertFile],
 			ClientKeyFilePath:  cfg[KeyClientKeyFile],
 		},
+	}
+
+	if cfg[KeyAuthMechanism] != "" {
+		config.Auth.Mechanism = authType(cfg[KeyAuthMechanism])
 	}
 
 	err := config.Auth.validate()
@@ -149,6 +153,6 @@ func (a *AuthConfig) validate() error {
 
 		return nil
 	default:
-		return errInvalidAuthMechanism
+		return ErrInvalidAuthMechanism
 	}
 }
