@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	// errInvalidAuthMechanism occurs when there's invalid mechanism config value.
-	errInvalidAuthMechanism = errors.New("invalid auth mechanism")
+	// ErrInvalidAuthMechanism occurs when there's invalid mechanism config value.
+	ErrInvalidAuthMechanism = errors.New("invalid auth mechanism")
 	// errRequiredDSNParameter occurs when there's empty dsn parameter for dsn auth.
 	errRequiredDSNParameter = errors.New("dsn is required parameter for dsn auth")
 	// errRequiredHostParameter occurs when there's empty host parameter for basic or jwt or x509 auth.

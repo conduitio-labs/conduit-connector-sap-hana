@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package saphana implements SAP HANA database connector for Conduit.
-// It provides both, a source and a destination SAP HANA connector.
-package saphana
+package writer
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
-	"github.com/conduitio-labs/conduit-connector-sap-hana/destination"
+	"errors"
 )
 
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        nil,
-	NewDestination:   destination.New,
-}
+var (
+	// ErrNoPayload occurs when there's no payload to insert.
+	ErrNoPayload = errors.New("no payload")
+	// ErrNoKey occurs when there is no value for key.
+	ErrNoKey = errors.New("no key")
+)
