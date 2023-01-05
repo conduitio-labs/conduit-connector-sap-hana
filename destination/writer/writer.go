@@ -23,6 +23,8 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
+
+	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
 )
 
 const (
@@ -32,8 +34,9 @@ const (
 
 // Writer implements a writer logic for db2 destination.
 type Writer struct {
-	db    *sql.DB
-	table string
+	db          *sql.DB
+	table       string
+	columnTypes map[string]string
 }
 
 // Params is an incoming params for the New function.
@@ -43,11 +46,20 @@ type Params struct {
 }
 
 // New creates new instance of the Writer.
-func New(ctx context.Context, params Params) *Writer {
-	return &Writer{
+func New(ctx context.Context, params Params) (*Writer, error) {
+	writer := &Writer{
 		db:    params.DB,
 		table: params.Table,
 	}
+
+	columnTypes, err := columntypes.GetColumnTypes(ctx, writer.db, writer.table)
+	if err != nil {
+		return nil, fmt.Errorf("get column types: %w", err)
+	}
+
+	writer.columnTypes = columnTypes
+
+	return writer, nil
 }
 
 // Close closes the underlying db connection.
@@ -97,6 +109,11 @@ func (w *Writer) Update(ctx context.Context, record sdk.Record) error {
 		return ErrNoPayload
 	}
 
+	payload, err = columntypes.ConvertStructureData(ctx, w.columnTypes, payload)
+	if err != nil {
+		return fmt.Errorf("convert structure data: %w", err)
+	}
+
 	keys, err := w.structurizeData(record.Key)
 	if err != nil {
 		return fmt.Errorf("structurize key: %w", err)
@@ -139,6 +156,11 @@ func (w *Writer) Insert(ctx context.Context, record sdk.Record) error {
 	// if payload is empty return empty payload error
 	if payload == nil {
 		return ErrNoPayload
+	}
+
+	payload, err = columntypes.ConvertStructureData(ctx, w.columnTypes, payload)
+	if err != nil {
+		return fmt.Errorf("convert structure data: %w", err)
 	}
 
 	columns, values := w.extractColumnsAndValues(payload)

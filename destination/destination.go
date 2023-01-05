@@ -28,6 +28,8 @@ import (
 
 const (
 	driverName = "hdb"
+
+	maxTableNameLength float64 = 128
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.
@@ -50,7 +52,10 @@ func (d *Destination) Parameters() map[string]sdk.Parameter {
 			Description: "Name of the table that the connector should write to.",
 			Default:     "",
 			Type:        sdk.ParameterTypeString,
-			Validations: []sdk.Validation{sdk.ValidationRequired{}},
+			Validations: []sdk.Validation{
+				sdk.ValidationRequired{},
+				sdk.ValidationLessThan{Value: maxTableNameLength},
+			},
 		},
 		config.KeyAuthMechanism: {
 			Description: "Type of the auth mechanism that connector should use",
@@ -127,10 +132,14 @@ func (d *Destination) Open(ctx context.Context) error {
 		}
 	}
 
-	d.writer = writer.New(ctx, writer.Params{
+	d.writer, err = writer.New(ctx, writer.Params{
 		DB:    db,
 		Table: d.config.Table,
 	})
+
+	if err != nil {
+		return fmt.Errorf("new writer: %w", err)
+	}
 
 	return nil
 }
