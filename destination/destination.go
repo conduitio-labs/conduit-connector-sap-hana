@@ -54,7 +54,6 @@ func (d *Destination) Parameters() map[string]sdk.Parameter {
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
-				sdk.ValidationLessThan{Value: maxTableNameLength},
 			},
 		},
 		config.KeyAuthMechanism: {
