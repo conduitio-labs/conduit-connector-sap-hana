@@ -28,8 +28,6 @@ import (
 
 const (
 	driverName = "hdb"
-
-	maxTableNameLength float64 = 128
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.

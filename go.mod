@@ -5,7 +5,9 @@ go 1.19
 require (
 	github.com/SAP/go-hdb v0.111.7
 	github.com/conduitio/conduit-connector-sdk v0.4.0
+	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.18.0
+	github.com/matryer/is v1.4.0
 )
 
 require (
@@ -17,7 +19,6 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/matryer/is v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect

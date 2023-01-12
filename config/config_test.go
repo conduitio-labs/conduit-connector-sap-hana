@@ -26,10 +26,11 @@ func TestParse(t *testing.T) {
 		cfg map[string]string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    Config
-		wantErr bool
+		name        string
+		args        args
+		want        Config
+		wantErr     bool
+		expectedErr string
 	}{
 		{
 			name: "success, DSN Auth",
@@ -121,7 +122,8 @@ func TestParse(t *testing.T) {
 					KeyAuthMechanism: "DSN",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: dsn is required parameter for dsn auth",
 		},
 		{
 			name: "failed, host missed for Basic AUTH",
@@ -133,7 +135,8 @@ func TestParse(t *testing.T) {
 					KeyPassword:      "password",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: host is required parameter for basic, jwt, x509 auth",
 		},
 		{
 			name: "failed, username missed for Basic AUTH",
@@ -145,7 +148,8 @@ func TestParse(t *testing.T) {
 					KeyPassword:      "password",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: username is required parameter for basic auth",
 		},
 		{
 			name: "failed, password missed for Basic AUTH",
@@ -157,7 +161,8 @@ func TestParse(t *testing.T) {
 					KeyUsername:      "username",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: password is required parameter for basic auth",
 		},
 		{
 			name: "failed, token missed for JWT AUTH",
@@ -168,18 +173,8 @@ func TestParse(t *testing.T) {
 					KeyHost:          "host",
 				},
 			},
-			wantErr: true,
-		},
-		{
-			name: "failed, host missed for JWT AUTH",
-			args: args{
-				cfg: map[string]string{
-					KeyTable:         "CLIENTS",
-					KeyAuthMechanism: "JWT",
-					KeyToken:         "token",
-				},
-			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: token is required for jwt auth",
 		},
 		{
 			name: "failed, host missed for X509 auth",
@@ -191,7 +186,8 @@ func TestParse(t *testing.T) {
 					KeyClientKeyFile:  "/tmp/keyfile",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: host is required parameter for basic, jwt, x509 auth",
 		},
 		{
 			name: "failed, clientCertFile missed for X509 auth",
@@ -203,7 +199,8 @@ func TestParse(t *testing.T) {
 					KeyClientKeyFile: "/tmp/keyfile",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: client cert file path is required for x509 auth",
 		},
 		{
 			name: "failed, clientKeyFile missed for X509 auth",
@@ -215,7 +212,8 @@ func TestParse(t *testing.T) {
 					KeyClientCertFile: "/tmp/certfile",
 				},
 			},
-			wantErr: true,
+			wantErr:     true,
+			expectedErr: "validate config: client key file path is required for x509 auth",
 		},
 	}
 
@@ -226,14 +224,24 @@ func TestParse(t *testing.T) {
 			t.Parallel()
 
 			got, err := Parse(tt.args.cfg)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("parse error = \"%s\", wantErr %t", err.Error(), tt.wantErr)
+
+					return
+				}
+
+				if err.Error() != tt.expectedErr {
+					t.Errorf("expected error \"%s\", got \"%s\"", tt.expectedErr, err.Error())
+
+					return
+				}
 
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parse() = %v, want %v", got, tt.want)
+				t.Errorf("parse = %v, want %v", got, tt.want)
 			}
 		})
 	}
