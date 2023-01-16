@@ -13,3 +13,107 @@
 // limitations under the License.
 
 package source
+
+import (
+	"context"
+	"fmt"
+
+	sdk "github.com/conduitio/conduit-connector-sdk"
+
+	"github.com/conduitio-labs/conduit-connector-sap-hana/helper"
+	"github.com/conduitio-labs/conduit-connector-sap-hana/source/iterator"
+)
+
+// Source connector.
+type Source struct {
+	sdk.UnimplementedSource
+
+	config   Config
+	iterator Iterator
+}
+
+// New initialises a new source.
+func New() sdk.Source {
+	return &Source{}
+}
+
+// Configure parses and stores configurations, returns an error in case of invalid configuration.
+func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
+	if err := sdk.Util.ParseConfig(cfg, &s.config); err != nil {
+		return fmt.Errorf("parse config: %w", err)
+	}
+
+	if err := s.config.Auth.Validate(); err != nil {
+		return fmt.Errorf("validate auth config: %w", err)
+	}
+
+	return nil
+}
+
+// Open prepare the plugin to start sending records from the given position.
+func (s *Source) Open(ctx context.Context, rp sdk.Position) error {
+	db, err := helper.ConnectToDB(s.config.Auth)
+	if err != nil {
+		return fmt.Errorf("connect to db: %w", err)
+	}
+
+	if err = db.Ping(); err != nil {
+		if err != nil {
+			return fmt.Errorf("ping db: %w", err)
+		}
+	}
+
+	s.iterator, err = iterator.NewCombinedIterator(
+		ctx,
+		iterator.CombinedParams{
+			DB:             db,
+			Table:          s.config.Table,
+			OrderingColumn: s.config.OrderingColumn,
+			CfgKeys:        s.config.PrimaryKeys,
+			BatchSize:      s.config.BatchSize,
+			Snapshot:       s.config.Snapshot,
+			SdkPosition:    rp,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("new iterator: %w", err)
+	}
+
+	return nil
+}
+
+// Read gets the next object from the db2.
+func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
+	hasNext, err := s.iterator.HasNext(ctx)
+	if err != nil {
+		return sdk.Record{}, fmt.Errorf("source has next: %w", err)
+	}
+
+	if !hasNext {
+		return sdk.Record{}, sdk.ErrBackoffRetry
+	}
+
+	r, err := s.iterator.Next(ctx)
+	if err != nil {
+		return sdk.Record{}, fmt.Errorf("source next: %w", err)
+	}
+
+	return r, nil
+}
+
+// Teardown gracefully shutdown connector.
+func (s *Source) Teardown(ctx context.Context) error {
+	if s.iterator != nil {
+		err := s.iterator.Stop()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Ack check if record with position was recorded.
+func (s *Source) Ack(ctx context.Context, p sdk.Position) error {
+	return s.iterator.Ack(ctx, p)
+}
