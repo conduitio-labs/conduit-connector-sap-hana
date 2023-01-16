@@ -20,9 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/huandu/go-sqlbuilder"
-
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/huandu/go-sqlbuilder"
 
 	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
 )
@@ -133,7 +132,7 @@ func (w *Writer) Update(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-// getTableName returns either the records metadata value for table
+// gettableName returns either the records metadata value for table
 // or the default configured value for table.
 func (w *Writer) getTableName(metadata map[string]string) string {
 	tableName, ok := metadata[metadataTable]
