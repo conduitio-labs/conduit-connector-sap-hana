@@ -28,8 +28,6 @@ import (
 
 const (
 	driverName = "hdb"
-
-	maxTableNameLength float64 = 128
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.
@@ -47,73 +45,18 @@ func New() sdk.Destination {
 
 // Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
 func (d *Destination) Parameters() map[string]sdk.Parameter {
-	return map[string]sdk.Parameter{
-		config.KeyTable: {
-			Description: "Name of the table that the connector should write to.",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-			Validations: []sdk.Validation{
-				sdk.ValidationRequired{},
-			},
-		},
-		config.KeyAuthMechanism: {
-			Description: "Type of the auth mechanism that connector should use",
-			Default:     string(config.DSNAuthType),
-			Type:        sdk.ParameterTypeString,
-			Validations: []sdk.Validation{
-				sdk.ValidationRequired{},
-				sdk.ValidationInclusion{List: []string{
-					string(config.DSNAuthType), string(config.BasicAuthType),
-					string(config.JWTAuthType), string(config.X509AuthType),
-				}},
-			},
-		},
-		config.KeyDSN: {
-			Description: "The url for connection to database, required for DSN auth type",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyHost: {
-			Description: "The host of db, required for Basic, JWT, X509 mechanisms",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyUsername: {
-			Description: "The username, required for Basic auth mechanism",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyPassword: {
-			Description: "The password, required for Basic auth mechanism",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyToken: {
-			Description: "The token, required for JWT auth mechanism",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyClientKeyFile: {
-			Description: "The path for client key file, required for X509 auth mechanism",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-		config.KeyClientCertFile: {
-			Description: "The path for cert file, required for X509 auth mechanism",
-			Default:     "",
-			Type:        sdk.ParameterTypeString,
-		},
-	}
+	return nil
 }
 
 // Configure parses and initializes the config.
 func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
-	configuration, err := config.Parse(cfg)
-	if err != nil {
+	if err := sdk.Util.ParseConfig(cfg, &d.config); err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
-	d.config = configuration
+	if err := d.config.Auth.Validate(); err != nil {
+		return fmt.Errorf("validate auth config: %w", err)
+	}
 
 	return nil
 }

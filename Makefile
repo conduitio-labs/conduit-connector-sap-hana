@@ -10,3 +10,7 @@ test:
 
 lint:
 	golangci-lint run --config .golangci.yml
+
+paramgen:
+	paramgen -path=./destination -output=destination_params.go Config
+	paramgen -path=./source -output=source_params.go Config

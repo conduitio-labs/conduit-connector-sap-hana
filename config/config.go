@@ -14,50 +14,22 @@
 
 package config
 
-import (
-	"fmt"
-)
-
-const (
-	// KeyTable is the config name for SAP HANA database table.
-	KeyTable string = "table"
-	// KeyAuthMechanism is the config name for SAP HANA database auth type.
-	KeyAuthMechanism string = "auth.mechanism"
-	// KeyDSN is the config name for dsn auth parameter.
-	KeyDSN string = "auth.DSN"
-	// KeyHost is the config name for host auth parameter.
-	KeyHost string = "auth.host"
-	// KeyUsername is the config name for username auth parameter.
-	KeyUsername string = "auth.username"
-	// KeyPassword is the config name for password auth parameter.
-	KeyPassword string = "auth.password"
-	// KeyToken is the config name for token auth parameter.
-	KeyToken string = "auth.token"
-	// KeyClientCertFile is the config name for clientCertFile auth parameter.
-	KeyClientCertFile string = "auth.clientCertFile"
-	// KeyClientKeyFile is the config name for clientKeyFile auth parameter.
-	KeyClientKeyFile string = "auth.clientKeyFile"
-)
-
-// authType type of auth.
-type authType string
-
 const (
 	// DSNAuthType name of DSN auth.
-	DSNAuthType authType = "DSN"
+	DSNAuthType string = "DSN"
 	// BasicAuthType name of Basic auth.
-	BasicAuthType authType = "Basic"
+	BasicAuthType string = "Basic"
 	// JWTAuthType name of JWT auth.
-	JWTAuthType authType = "JWT"
+	JWTAuthType string = "JWT"
 	// X509AuthType name of X509 auth.
-	X509AuthType authType = "X509"
+	X509AuthType string = "X509"
 )
 
 // Config contains configurable values
 // shared between source and destination SAP HANA connector.
 type Config struct {
 	// Table is a name of the table that the connector should write to or read from.
-	Table string
+	Table string `json:"table" validate:"required"`
 
 	Auth AuthConfig
 }
@@ -65,52 +37,25 @@ type Config struct {
 // AuthConfig auth parameters.
 type AuthConfig struct {
 	// Mechanism type of auth. Valid types: DSN, Basic, JWT, X509.
-	Mechanism authType
+	Mechanism string `json:"mechanism" default:"DSN" validate:"inclusion=DSN|Basic|JWT|X509"`
 	// Host link to db.
-	Host string
+	Host string `json:"host"`
 	// DSN connection to SAP HANA database.
-	DSN string
+	DSN string `json:"dsn"`
 	// Username parameter for basic auth.
-	Username string
+	Username string `json:"username"`
 	// Password parameter for basic auth.
-	Password string
+	Password string `json:"password"`
 	// Token parameter for JWT auth.
-	Token string
+	Token string `json:"token"`
 	// ClientCertFilePath path to file, parameter for X509 auth.
-	ClientCertFilePath string
-	// clientKeyFile path to file, parameter for X509 auth.
-	ClientKeyFilePath string
+	ClientCertFilePath string `json:"clientCertFilePath"`
+	// ClientKeyFilePath path to file, parameter for X509 auth.
+	ClientKeyFilePath string `json:"clientKeyFilePath"`
 }
 
-// Parse attempts to parse a provided map[string]string into a Config struct.
-func Parse(cfg map[string]string) (Config, error) {
-	config := Config{
-		Table: cfg[KeyTable],
-		Auth: AuthConfig{
-			Mechanism:          DSNAuthType,
-			Host:               cfg[KeyHost],
-			DSN:                cfg[KeyDSN],
-			Username:           cfg[KeyUsername],
-			Password:           cfg[KeyPassword],
-			Token:              cfg[KeyToken],
-			ClientCertFilePath: cfg[KeyClientCertFile],
-			ClientKeyFilePath:  cfg[KeyClientKeyFile],
-		},
-	}
-
-	if cfg[KeyAuthMechanism] != "" {
-		config.Auth.Mechanism = authType(cfg[KeyAuthMechanism])
-	}
-
-	err := config.Auth.validate()
-	if err != nil {
-		return Config{}, fmt.Errorf("validate config: %w", err)
-	}
-
-	return config, nil
-}
-
-func (a *AuthConfig) validate() error {
+// Validate auth config parameters.
+func (a *AuthConfig) Validate() error {
 	switch a.Mechanism {
 	case DSNAuthType:
 		if a.DSN == "" {
