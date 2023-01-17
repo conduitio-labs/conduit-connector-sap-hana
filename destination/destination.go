@@ -20,13 +20,8 @@ import (
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 
-	"github.com/conduitio-labs/conduit-connector-sap-hana/config"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/destination/writer"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/helper"
-)
-
-const (
-	driverName = "hdb"
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.
@@ -34,7 +29,7 @@ type Destination struct {
 	sdk.UnimplementedDestination
 
 	writer Writer
-	config config.Config
+	config Config
 }
 
 // New creates new instance of the Destination.
@@ -44,7 +39,7 @@ func New() sdk.Destination {
 
 // Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
 func (d *Destination) Parameters() map[string]sdk.Parameter {
-	return nil
+	return d.config.Parameters()
 }
 
 // Configure parses and initializes the config.

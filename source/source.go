@@ -37,6 +37,11 @@ func New() sdk.Source {
 	return &Source{}
 }
 
+// Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
+func (s *Source) Parameters() map[string]sdk.Parameter {
+	return s.config.Parameters()
+}
+
 // Configure parses and stores configurations, returns an error in case of invalid configuration.
 func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	if err := sdk.Util.ParseConfig(cfg, &s.config); err != nil {
@@ -82,7 +87,7 @@ func (s *Source) Open(ctx context.Context, rp sdk.Position) error {
 	return nil
 }
 
-// Read gets the next object from the db2.
+// Read gets the next object from the Sap Hana db.
 func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
 	hasNext, err := s.iterator.HasNext(ctx)
 	if err != nil {
