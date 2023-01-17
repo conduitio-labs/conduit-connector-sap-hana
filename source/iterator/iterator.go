@@ -16,9 +16,13 @@ package iterator
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
+	"github.com/conduitio-labs/conduit-connector-sap-hana/source/position"
 )
 
 const (
@@ -27,10 +31,9 @@ const (
 
 // CombinedIterator combined iterator.
 type CombinedIterator struct {
-	snapshot *snapshotIterator
+	db *sqlx.DB
 
-	// connection string.
-	conn string
+	snapshot *snapshotIterator
 
 	// table - table name.
 	table string
@@ -42,6 +45,8 @@ type CombinedIterator struct {
 	orderingColumn string
 	// batchSize size of batch.
 	batchSize int
+	// tableInfo - general information about column types, primary keys.
+	tableInfo columntypes.TableInfo
 }
 
 // CombinedParams is an incoming params for the [NewCombinedIterator] function.
@@ -58,9 +63,40 @@ type CombinedParams struct {
 // NewCombinedIterator - create new iterator.
 func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedIterator, error) {
 	it := &CombinedIterator{
+		db:             params.DB,
 		table:          params.Table,
 		orderingColumn: params.OrderingColumn,
 		batchSize:      params.BatchSize,
+	}
+
+	pos, err := position.ParseSDKPosition(params.SdkPosition)
+	if err != nil {
+		return nil, fmt.Errorf("parse position: %w", err)
+	}
+
+	// get column types for converting and get primary keys information
+	it.tableInfo, err = columntypes.GetTableInfo(ctx, params.DB, params.Table)
+	if err != nil {
+		return nil, fmt.Errorf("get table info: %w", err)
+	}
+
+	it.setKeys(params.CfgKeys)
+
+	if params.Snapshot && (pos == nil || pos.IteratorType == position.TypeSnapshot) {
+		it.snapshot, err = newSnapshotIterator(ctx, snapshotParams{
+			db:             it.db,
+			table:          it.table,
+			orderingColumn: it.orderingColumn,
+			keys:           it.keys,
+			batchSize:      it.batchSize,
+			position:       pos,
+			columnTypes:    it.tableInfo.ColumnTypes,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("new shapshot iterator: %w", err)
+		}
+	} else {
+		// todo cdc init
 	}
 
 	return it, nil
@@ -88,7 +124,6 @@ func (c *CombinedIterator) Stop() error {
 
 // Ack check if record with position was recorded.
 func (c *CombinedIterator) Ack(ctx context.Context, rp sdk.Position) error {
-
 	return nil
 }
 

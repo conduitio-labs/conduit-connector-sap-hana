@@ -32,19 +32,46 @@ const (
 	timeType       = "TIME"
 	secondDateType = "SECONDDATE"
 	timestampType  = "TIMESTAMP"
+
+	// sap hana string types.
+	varcharType  = "VARCHAR"
+	nvarcharType = "NVARCHAR"
+	clobType     = "CLOB"
+	nclobType    = "NCLOB"
 )
 
 const (
 	querySchemaColumnTypes = `
-		select 
-		  column_name, 
-		  data_type_name 
-		from 
-		  table_columns 
-		where 
-		  table_name = $1
+		SELECT 
+		  COLUMN_NAME, 
+		  DATA_TYPE_NAME,
+		  LENGTH
+		FROM 
+		  TABLE_COLUMNS 
+		WHERE 
+		  TABLE_NAME = $1
+`
+	queryGetPrimaryKeys = `
+		SELECT 
+		  COLUMN_NAME 
+		FROM 
+		  CONSTRAINTS 
+		WHERE 
+		  TABLE_NAME = $1 
+		  and IS_PRIMARY_KEY = 'TRUE'
+
 `
 )
+
+// TableInfo - information about colum types, primary keys from table.
+type TableInfo struct {
+	// ColumnTypes - column name with column type.
+	ColumnTypes map[string]string
+	// PrimaryKeys - primary keys column names.
+	PrimaryKeys []string
+	// ColumnLengths - column name with length
+	ColumnLengths map[string]int
+}
 
 // time layouts.
 var layouts = []string{
@@ -58,24 +85,52 @@ type Querier interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
-// GetColumnTypes returns a map containing all table's columns and their database types.
-func GetColumnTypes(ctx context.Context, querier Querier, tableName string) (map[string]string, error) {
-	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, tableName)
+// GetTableInfo returns a map containing all table's columns and their database types
+// and returns primary columns names.
+func GetTableInfo(ctx context.Context, querier Querier, tableName string) (TableInfo, error) {
+	columnTypes := make(map[string]string)
+	columnLengths := make(map[string]int)
+	primaryKeys := make([]string, 0)
+
+	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
 	if err != nil {
-		return nil, fmt.Errorf("query column types: %w", err)
+		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
 
-	columnTypes := make(map[string]string)
 	for rows.Next() {
-		var columnName, dataTypeName string
-		if er := rows.Scan(&columnName, &dataTypeName); er != nil {
-			return nil, fmt.Errorf("scan rows: %w", er)
+		var (
+			columnName, dataType string
+			length               int
+		)
+
+		if er := rows.Scan(&columnName, &dataType, &length); er != nil {
+			return TableInfo{}, fmt.Errorf("scan rows: %w", er)
 		}
 
-		columnTypes[columnName] = dataTypeName
+		columnTypes[columnName] = dataType
+		columnLengths[columnName] = length
 	}
 
-	return columnTypes, nil
+	rows, err = querier.QueryContext(ctx, queryGetPrimaryKeys, strings.ToUpper(tableName))
+	if err != nil {
+		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
+	}
+
+	for rows.Next() {
+		var columnName string
+
+		if er := rows.Scan(&columnName); er != nil {
+			return TableInfo{}, fmt.Errorf("scan rows: %w", er)
+		}
+
+		primaryKeys = append(primaryKeys, columnName)
+	}
+
+	return TableInfo{
+		ColumnTypes:   columnTypes,
+		PrimaryKeys:   primaryKeys,
+		ColumnLengths: columnLengths,
+	}, nil
 }
 
 // ConvertStructureData converts a sdk.StructureData values to a proper database types.
@@ -128,6 +183,35 @@ func ConvertStructureData(
 			}
 
 			result[key] = timeValue
+		default:
+			result[key] = value
+		}
+	}
+
+	return result, nil
+}
+
+// TransformRow converts row map values to appropriate Go types, based on the columnTypes.
+func TransformRow(ctx context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
+	result := make(map[string]any, len(row))
+
+	for key, value := range row {
+		if value == nil {
+			result[key] = value
+
+			continue
+		}
+
+		switch columnTypes[key] {
+		// Convert to string.
+		case clobType, varcharType, nclobType, nvarcharType:
+			valueBytes, ok := value.([]byte)
+			if !ok {
+				return nil, convertValueToBytesErr(key)
+			}
+
+			result[key] = string(valueBytes)
+
 		default:
 			result[key] = value
 		}

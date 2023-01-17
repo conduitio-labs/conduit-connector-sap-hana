@@ -16,10 +16,16 @@ package columntypes
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
-	ErrValueIsNotAString = errors.New("value is not a string")
-	ErrValueIsNotBytes   = errors.New("value is not bytes")
-	ErrInvalidTimeLayout = errors.New("invalid time layout")
+	ErrValueIsNotAString         = errors.New("value is not a string")
+	ErrCannotConvertValueToBytes = errors.New("cannot convert value to byte slice")
+	ErrInvalidTimeLayout         = errors.New("invalid time layout")
 )
+
+// convertValueToBytesErr returns the formatted ErrCannotConvertValueToBytes error.
+func convertValueToBytesErr(name string) error {
+	return fmt.Errorf("%w: %q", ErrCannotConvertValueToBytes, name)
+}

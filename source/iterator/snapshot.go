@@ -24,6 +24,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 
+	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/position"
 )
 
@@ -43,9 +44,6 @@ type snapshotIterator struct {
 
 	// table - table name.
 	table string
-	// columns list of table columns for record payload
-	// if empty - will get all columns.
-	columns []string
 	// keys Names of columns what iterator use for setting key in record.
 	keys []string
 	// orderingColumn Name of column what iterator using for sorting data.
@@ -60,26 +58,30 @@ type snapshotIterator struct {
 	columnTypes map[string]string
 }
 
+type snapshotParams struct {
+	db             *sqlx.DB
+	table          string
+	orderingColumn string
+	keys           []string
+	batchSize      int
+	position       *position.Position
+	columnTypes    map[string]string
+}
+
 func newSnapshotIterator(
 	ctx context.Context,
-	db *sqlx.DB,
-	table, orderingColumn string,
-	keys, columns []string,
-	batchSize int,
-	position *position.Position,
-	columnTypes map[string]string,
+	snapshotParams snapshotParams,
 ) (*snapshotIterator, error) {
 	var err error
 
 	it := &snapshotIterator{
-		db:             db,
-		table:          table,
-		columns:        columns,
-		keys:           keys,
-		orderingColumn: orderingColumn,
-		batchSize:      batchSize,
-		position:       position,
-		columnTypes:    columnTypes,
+		db:             snapshotParams.db,
+		table:          snapshotParams.table,
+		keys:           snapshotParams.keys,
+		orderingColumn: snapshotParams.orderingColumn,
+		batchSize:      snapshotParams.batchSize,
+		position:       snapshotParams.position,
+		columnTypes:    snapshotParams.columnTypes,
 	}
 
 	err = it.loadRows(ctx)
@@ -87,8 +89,8 @@ func newSnapshotIterator(
 		return nil, fmt.Errorf("load rows: %w", err)
 	}
 
-	if position != nil {
-		it.maxValue = position.SnapshotMaxValue
+	if snapshotParams.position != nil {
+		it.maxValue = snapshotParams.position.SnapshotMaxValue
 	} else {
 		err = it.setMaxValue(ctx)
 		if err != nil {
@@ -124,13 +126,18 @@ func (i *snapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 		return sdk.Record{}, fmt.Errorf("scan rows: %w", err)
 	}
 
-	if _, ok := row[i.orderingColumn]; !ok {
+	transformedRow, err := columntypes.TransformRow(ctx, row, i.columnTypes)
+	if err != nil {
+		return sdk.Record{}, fmt.Errorf("transform row column types: %w", err)
+	}
+
+	if _, ok := transformedRow[i.orderingColumn]; !ok {
 		return sdk.Record{}, ErrNoOrderingColumn
 	}
 
 	pos := position.Position{
 		IteratorType:             position.TypeSnapshot,
-		SnapshotLastProcessedVal: row[i.orderingColumn],
+		SnapshotLastProcessedVal: transformedRow[i.orderingColumn],
 		SnapshotMaxValue:         i.maxValue,
 	}
 
@@ -141,14 +148,14 @@ func (i *snapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 
 	keysMap := make(map[string]any)
 	for _, val := range i.keys {
-		if _, ok := row[val]; !ok {
+		if _, ok := transformedRow[val]; !ok {
 			return sdk.Record{}, fmt.Errorf("key %v, %w", val, ErrNoKey)
 		}
 
-		keysMap[val] = row[val]
+		keysMap[val] = transformedRow[val]
 	}
 
-	transformedRowBytes, err := json.Marshal(row)
+	transformedRowBytes, err := json.Marshal(transformedRow)
 	if err != nil {
 		return sdk.Record{}, fmt.Errorf("marshal row: %w", err)
 	}
@@ -171,12 +178,17 @@ func (i *snapshotIterator) Stop() error {
 	if i.rows != nil {
 		err := i.rows.Close()
 		if err != nil {
-			return err
+			return fmt.Errorf("close rows: %w", err)
 		}
 	}
 
 	if i.db != nil {
-		return i.db.Close()
+		err := i.db.Close()
+		if err != nil {
+			return fmt.Errorf("close db %w", err)
+		}
+
+		return nil
 	}
 
 	return nil
@@ -187,12 +199,7 @@ func (i *snapshotIterator) Stop() error {
 func (i *snapshotIterator) loadRows(ctx context.Context) error {
 	builder := sqlbuilder.NewSelectBuilder()
 
-	if len(i.columns) > 0 {
-		builder.Select(i.columns...)
-	} else {
-		builder.Select("*")
-	}
-
+	builder.Select("*")
 	builder.From(i.table)
 
 	if i.position != nil {

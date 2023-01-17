@@ -111,7 +111,7 @@ func (s *Source) Teardown(ctx context.Context) error {
 	if s.iterator != nil {
 		err := s.iterator.Stop()
 		if err != nil {
-			return err
+			return fmt.Errorf("stop iterator %w", err)
 		}
 	}
 
@@ -120,5 +120,10 @@ func (s *Source) Teardown(ctx context.Context) error {
 
 // Ack check if record with position was recorded.
 func (s *Source) Ack(ctx context.Context, p sdk.Position) error {
-	return s.iterator.Ack(ctx, p)
+	err := s.iterator.Ack(ctx, p)
+	if err != nil {
+		return fmt.Errorf("iterator ack: %w", err)
+	}
+
+	return nil
 }
