@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	conduit_connector_sdk "github.com/conduitio/conduit-connector-sdk"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -50,7 +50,7 @@ func (mr *MockWriterMockRecorder) Close(ctx interface{}) *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *MockWriter) Delete(ctx context.Context, record conduit_connector_sdk.Record) error {
+func (m *MockWriter) Delete(ctx context.Context, record sdk.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, record)
 	ret0, _ := ret[0].(error)
@@ -64,7 +64,7 @@ func (mr *MockWriterMockRecorder) Delete(ctx, record interface{}) *gomock.Call {
 }
 
 // Insert mocks base method.
-func (m *MockWriter) Insert(ctx context.Context, record conduit_connector_sdk.Record) error {
+func (m *MockWriter) Insert(ctx context.Context, record sdk.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, record)
 	ret0, _ := ret[0].(error)
@@ -78,7 +78,7 @@ func (mr *MockWriterMockRecorder) Insert(ctx, record interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockWriter) Update(ctx context.Context, record conduit_connector_sdk.Record) error {
+func (m *MockWriter) Update(ctx context.Context, record sdk.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, record)
 	ret0, _ := ret[0].(error)
