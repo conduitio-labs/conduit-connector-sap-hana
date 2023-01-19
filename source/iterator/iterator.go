@@ -67,6 +67,7 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 		table:          params.Table,
 		orderingColumn: params.OrderingColumn,
 		batchSize:      params.BatchSize,
+		trackingTable:  fmt.Sprintf(trackingTablePattern, params.Table),
 	}
 
 	pos, err := position.ParseSDKPosition(params.SdkPosition)
@@ -81,6 +82,11 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 	}
 
 	it.setKeys(params.CfgKeys)
+
+	err = setupCDC(ctx, it.db, it.table, it.trackingTable, it.tableInfo)
+	if err != nil {
+		return nil, fmt.Errorf("setup cdc: %w", err)
+	}
 
 	if params.Snapshot && (pos == nil || pos.IteratorType == position.TypeSnapshot) {
 		it.snapshot, err = newSnapshotIterator(ctx, snapshotParams{
