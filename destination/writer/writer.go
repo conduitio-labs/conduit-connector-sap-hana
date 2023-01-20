@@ -16,12 +16,12 @@ package writer
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
 )
@@ -33,14 +33,14 @@ const (
 
 // Writer implements a writer logic for db2 destination.
 type Writer struct {
-	db          *sql.DB
+	db          *sqlx.DB
 	table       string
 	columnTypes map[string]string
 }
 
 // Params is an incoming params for the New function.
 type Params struct {
-	DB    *sql.DB
+	DB    *sqlx.DB
 	Table string
 }
 
@@ -51,12 +51,12 @@ func New(ctx context.Context, params Params) (*Writer, error) {
 		table: params.Table,
 	}
 
-	columnTypes, err := columntypes.GetColumnTypes(ctx, writer.db, writer.table)
+	tableInfo, err := columntypes.GetTableInfo(ctx, writer.db, writer.table)
 	if err != nil {
-		return nil, fmt.Errorf("get column types: %w", err)
+		return nil, fmt.Errorf("get table info: %w", err)
 	}
 
-	writer.columnTypes = columnTypes
+	writer.columnTypes = tableInfo.ColumnTypes
 
 	return writer, nil
 }

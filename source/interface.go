@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package saphana implements SAP HANA database connector for Conduit.
-// It provides both, a source and a destination SAP HANA connector.
-package saphana
+package source
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"context"
 
-	"github.com/conduitio-labs/conduit-connector-sap-hana/destination"
-	"github.com/conduitio-labs/conduit-connector-sap-hana/source"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.New,
-	NewDestination:   destination.New,
+// Iterator interface.
+type Iterator interface {
+	HasNext(ctx context.Context) (bool, error)
+	Next(ctx context.Context) (sdk.Record, error)
+	Stop() error
+	Ack(ctx context.Context, rp sdk.Position) error
 }

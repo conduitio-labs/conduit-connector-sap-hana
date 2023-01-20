@@ -9,12 +9,6 @@ import (
 
 func (Config) Parameters() map[string]sdk.Parameter {
 	return map[string]sdk.Parameter{
-		"auth.DSN": {
-			Default:     "",
-			Description: "DSN connection to SAP HANA database.",
-			Type:        sdk.ParameterTypeString,
-			Validations: []sdk.Validation{},
-		},
 		"auth.clientCertFilePath": {
 			Default:     "",
 			Description: "clientCertFilePath path to file, parameter for X509 auth.",
@@ -24,6 +18,12 @@ func (Config) Parameters() map[string]sdk.Parameter {
 		"auth.clientKeyFilePath": {
 			Default:     "",
 			Description: "clientKeyFilePath path to file, parameter for X509 auth.",
+			Type:        sdk.ParameterTypeString,
+			Validations: []sdk.Validation{},
+		},
+		"auth.dsn": {
+			Default:     "",
+			Description: "dsn connection to SAP HANA database.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{},
 		},

@@ -32,19 +32,92 @@ const (
 	timeType       = "TIME"
 	secondDateType = "SECONDDATE"
 	timestampType  = "TIMESTAMP"
+
+	// sap hana string types.
+	varcharType  = "VARCHAR"
+	nvarcharType = "NVARCHAR"
+	clobType     = "CLOB"
+	nclobType    = "NCLOB"
+
+	// deprecated types for sap hana cloud.
+	alphanumType  = "ALPHANUM"
+	shortTextType = "SHORTTEXT"
+
+	// sap hana binary types.
+	varbinaryType = "VARBINARY"
+
+	// sap hana decimal type.
+	decimalType = "DECIMAL"
 )
 
 const (
 	querySchemaColumnTypes = `
-		select 
-		  column_name, 
-		  data_type_name 
-		from 
-		  table_columns 
-		where 
-		  table_name = $1
+		SELECT 
+		  COLUMN_NAME, 
+		  DATA_TYPE_NAME,
+		  LENGTH,
+		  SCALE
+		FROM 
+		  TABLE_COLUMNS 
+		WHERE 
+		  TABLE_NAME = $1
+`
+	queryGetPrimaryKeys = `
+		SELECT 
+		  COLUMN_NAME 
+		FROM 
+		  CONSTRAINTS 
+		WHERE 
+		  TABLE_NAME = $1 
+		  AND IS_PRIMARY_KEY = 'TRUE'
+
 `
 )
+
+// column types where length is required parameter.
+var typesWithLength = []string{varcharType, nvarcharType, varbinaryType, alphanumType, shortTextType}
+
+// TableInfo - information about colum types, primary keys from table.
+type TableInfo struct {
+	// ColumnTypes - column name with column type.
+	ColumnTypes map[string]string
+	// PrimaryKeys - primary keys column names.
+	PrimaryKeys []string
+	// ColumnLengths - column name with length.
+	ColumnLengths map[string]int
+	// ColumnScales - column name with scale.
+	ColumnScales map[string]*int
+}
+
+// GetColumnQueryPart prepare query part about creation column for tracking table.
+func (t TableInfo) GetColumnQueryPart() string {
+	var columns []string
+	for key, val := range t.ColumnTypes {
+		cl := fmt.Sprintf("%s %s", key, val)
+		// add length value
+		if isTypeWithRequiredLength(val) {
+			cl = fmt.Sprintf("%s(%d)", cl, t.ColumnLengths[key])
+		}
+		// add length and scale, only for decimal type
+		if val == decimalType {
+			cl = fmt.Sprintf("%s(%d,%d)", cl, t.ColumnLengths[key], t.ColumnScales[key])
+		}
+
+		columns = append(columns, cl)
+	}
+
+	return strings.Join(columns, ",")
+}
+
+func isTypeWithRequiredLength(elem string) bool {
+	for _, val := range typesWithLength {
+		if val == elem {
+			return true
+		}
+	}
+
+	return false
+}
 
 // time layouts.
 var layouts = []string{
@@ -58,24 +131,57 @@ type Querier interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
-// GetColumnTypes returns a map containing all table's columns and their database types.
-func GetColumnTypes(ctx context.Context, querier Querier, tableName string) (map[string]string, error) {
-	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, tableName)
-	if err != nil {
-		return nil, fmt.Errorf("query column types: %w", err)
-	}
+// GetTableInfo returns a map containing all table's columns and their database types
+// and returns primary columns names.
+func GetTableInfo(ctx context.Context, querier Querier, tableName string) (TableInfo, error) {
+	var primaryKeys []string
 
 	columnTypes := make(map[string]string)
-	for rows.Next() {
-		var columnName, dataTypeName string
-		if er := rows.Scan(&columnName, &dataTypeName); er != nil {
-			return nil, fmt.Errorf("scan rows: %w", er)
-		}
+	columnLengths := make(map[string]int)
+	columnScales := make(map[string]*int)
 
-		columnTypes[columnName] = dataTypeName
+	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
+	if err != nil {
+		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
 
-	return columnTypes, nil
+	for rows.Next() {
+		var (
+			columnName, dataType string
+			length               int
+			scale                *int
+		)
+
+		if er := rows.Scan(&columnName, &dataType, &length, &scale); er != nil {
+			return TableInfo{}, fmt.Errorf("scan rows: %w", er)
+		}
+
+		columnTypes[columnName] = dataType
+		columnLengths[columnName] = length
+		columnScales[columnName] = scale
+	}
+
+	rows, err = querier.QueryContext(ctx, queryGetPrimaryKeys, strings.ToUpper(tableName))
+	if err != nil {
+		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
+	}
+
+	for rows.Next() {
+		var columnName string
+
+		if er := rows.Scan(&columnName); er != nil {
+			return TableInfo{}, fmt.Errorf("scan rows: %w", er)
+		}
+
+		primaryKeys = append(primaryKeys, columnName)
+	}
+
+	return TableInfo{
+		ColumnTypes:   columnTypes,
+		PrimaryKeys:   primaryKeys,
+		ColumnLengths: columnLengths,
+		ColumnScales:  columnScales,
+	}, nil
 }
 
 // ConvertStructureData converts a sdk.StructureData values to a proper database types.
@@ -128,6 +234,35 @@ func ConvertStructureData(
 			}
 
 			result[key] = timeValue
+		default:
+			result[key] = value
+		}
+	}
+
+	return result, nil
+}
+
+// TransformRow converts row map values to appropriate Go types, based on the columnTypes.
+func TransformRow(ctx context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
+	result := make(map[string]any, len(row))
+
+	for key, value := range row {
+		if value == nil {
+			result[key] = value
+
+			continue
+		}
+
+		switch columnTypes[key] {
+		// Convert to string.
+		case clobType, varcharType, nclobType, nvarcharType, alphanumType, shortTextType:
+			valueBytes, ok := value.([]byte)
+			if !ok {
+				return nil, convertValueToBytesErr(key)
+			}
+
+			result[key] = string(valueBytes)
+
 		default:
 			result[key] = value
 		}

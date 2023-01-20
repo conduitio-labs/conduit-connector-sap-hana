@@ -16,18 +16,12 @@ package destination
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
-	"github.com/SAP/go-hdb/driver"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 
-	"github.com/conduitio-labs/conduit-connector-sap-hana/config"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/destination/writer"
-)
-
-const (
-	driverName = "hdb"
+	"github.com/conduitio-labs/conduit-connector-sap-hana/helper"
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.
@@ -35,7 +29,7 @@ type Destination struct {
 	sdk.UnimplementedDestination
 
 	writer Writer
-	config config.Config
+	config Config
 }
 
 // New creates new instance of the Destination.
@@ -45,7 +39,7 @@ func New() sdk.Destination {
 
 // Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
 func (d *Destination) Parameters() map[string]sdk.Parameter {
-	return nil
+	return d.config.Parameters()
 }
 
 // Configure parses and initializes the config.
@@ -63,7 +57,7 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 
 // Open makes sure everything is prepared to receive records.
 func (d *Destination) Open(ctx context.Context) error {
-	db, err := d.connectToDB(d.config.Auth)
+	db, err := helper.ConnectToDB(d.config.Auth)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
 	}
@@ -113,33 +107,4 @@ func (d *Destination) Teardown(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (d *Destination) connectToDB(c config.AuthConfig) (*sql.DB, error) {
-	switch c.Mechanism {
-	case config.DSNAuthType:
-		db, err := sql.Open(driverName, c.DSN)
-		if err != nil {
-			return nil, fmt.Errorf("open db, DSN auth: %w", err)
-		}
-
-		return db, nil
-	case config.BasicAuthType:
-		connector := driver.NewBasicAuthConnector(c.Host, c.Username, c.Password)
-
-		return sql.OpenDB(connector), nil
-	case config.JWTAuthType:
-		connector := driver.NewJWTAuthConnector(c.Host, c.Token)
-
-		return sql.OpenDB(connector), nil
-	case config.X509AuthType:
-		connector, err := driver.NewX509AuthConnectorByFiles(c.Host, c.ClientCertFilePath, c.ClientKeyFilePath)
-		if err != nil {
-			return nil, fmt.Errorf("new X509 auth: %w", err)
-		}
-
-		return sql.OpenDB(connector), nil
-	default:
-		return nil, config.ErrInvalidAuthMechanism
-	}
 }
