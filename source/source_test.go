@@ -28,7 +28,7 @@ import (
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/position"
 )
 
-//nolint:tparallel,nolintlint
+//nolint:tparallel,paralleltest,nolintlint
 func TestSource_Configure(t *testing.T) {
 	t.Parallel()
 

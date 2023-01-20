@@ -173,13 +173,23 @@ func (i *snapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 		nil
 }
 
-// Stop shutdown iterator.
-func (i *snapshotIterator) Stop() error {
+// CloseRows close sql rows.
+func (i *snapshotIterator) CloseRows() error {
 	if i.rows != nil {
 		err := i.rows.Close()
 		if err != nil {
 			return fmt.Errorf("close rows: %w", err)
 		}
+	}
+
+	return nil
+}
+
+// Stop shutdown iterator.
+func (i *snapshotIterator) Stop() error {
+	err := i.CloseRows()
+	if err != nil {
+		return fmt.Errorf("close rows: %w", err)
 	}
 
 	if i.db != nil {

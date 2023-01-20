@@ -39,7 +39,7 @@ const (
 	clobType     = "CLOB"
 	nclobType    = "NCLOB"
 
-	// deprecated types for sap hana cloud
+	// deprecated types for sap hana cloud.
 	alphanumType  = "ALPHANUM"
 	shortTextType = "SHORTTEXT"
 
@@ -74,10 +74,8 @@ const (
 `
 )
 
-var (
-	// column types where length is required parameter.
-	typesWithLength = []string{varcharType, nvarcharType, varbinaryType, alphanumType, shortTextType}
-)
+// column types where length is required parameter.
+var typesWithLength = []string{varcharType, nvarcharType, varbinaryType, alphanumType, shortTextType}
 
 // TableInfo - information about colum types, primary keys from table.
 type TableInfo struct {
@@ -91,7 +89,7 @@ type TableInfo struct {
 	ColumnScales map[string]*int
 }
 
-// GetColumnQueryPart prepare query part about creation column for tracking table
+// GetColumnQueryPart prepare query part about creation column for tracking table.
 func (t TableInfo) GetColumnQueryPart() string {
 	var columns []string
 	for key, val := range t.ColumnTypes {

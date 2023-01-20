@@ -34,6 +34,7 @@ type CombinedIterator struct {
 	db *sqlx.DB
 
 	snapshot *snapshotIterator
+	cdc      *cdcIterator
 
 	// table - table name.
 	table string
@@ -102,7 +103,21 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 			return nil, fmt.Errorf("new shapshot iterator: %w", err)
 		}
 	} else {
-		// todo cdc init
+		it.cdc, err = newCDCIterator(
+			ctx,
+			cdcParams{
+				db:            it.db,
+				table:         it.table,
+				trackingTable: it.trackingTable,
+				keys:          it.keys,
+				batchSize:     it.batchSize,
+				columnTypes:   it.tableInfo.ColumnTypes,
+				position:      pos,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("new cdc iterator: %w", err)
+		}
 	}
 
 	return it, nil
@@ -111,12 +126,43 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 // HasNext returns a bool indicating whether the iterator has the next record to return or not.
 // If the underlying snapshot iterator returns false, the combined iterator will try to switch to the cdc iterator.
 func (c *CombinedIterator) HasNext(ctx context.Context) (bool, error) {
-	return c.snapshot.HasNext(ctx)
+	switch {
+	case c.snapshot != nil:
+		hasNext, err := c.snapshot.HasNext(ctx)
+		if err != nil {
+			return false, fmt.Errorf("snapshot has next: %w", err)
+		}
+
+		if !hasNext {
+			if er := c.switchToCDCIterator(ctx); er != nil {
+				return false, fmt.Errorf("switch to cdc iterator: %w", err)
+			}
+
+			return false, nil
+		}
+
+		return true, nil
+
+	case c.cdc != nil:
+		return c.cdc.HasNext(ctx)
+
+	default:
+		return false, nil
+	}
 }
 
 // Next returns the next record.
 func (c *CombinedIterator) Next(ctx context.Context) (sdk.Record, error) {
-	return c.snapshot.Next(ctx)
+	switch {
+	case c.snapshot != nil:
+		return c.snapshot.Next(ctx)
+
+	case c.cdc != nil:
+		return c.cdc.Next(ctx)
+
+	default:
+		return sdk.Record{}, ErrNoInitializedIterator
+	}
 }
 
 // Stop the underlying iterators.
@@ -125,11 +171,51 @@ func (c *CombinedIterator) Stop() error {
 		return c.snapshot.Stop()
 	}
 
+	if c.cdc != nil {
+		return c.cdc.Stop()
+	}
+
 	return nil
 }
 
 // Ack check if record with position was recorded.
 func (c *CombinedIterator) Ack(ctx context.Context, rp sdk.Position) error {
+	pos, err := position.ParseSDKPosition(rp)
+	if err != nil {
+		return fmt.Errorf("parse position: %w", err)
+	}
+
+	if pos.IteratorType == position.TypeCDC {
+		return c.cdc.Ack(ctx, pos)
+	}
+
+	return nil
+}
+
+func (c *CombinedIterator) switchToCDCIterator(ctx context.Context) error {
+	err := c.snapshot.CloseRows()
+	if err != nil {
+		return fmt.Errorf("close rows: %w", err)
+	}
+
+	c.snapshot = nil
+
+	c.cdc, err = newCDCIterator(
+		ctx,
+		cdcParams{
+			db:            c.db,
+			table:         c.table,
+			trackingTable: c.trackingTable,
+			keys:          c.keys,
+			batchSize:     c.batchSize,
+			columnTypes:   c.tableInfo.ColumnTypes,
+			position:      nil,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("new cdc iterator: %w", err)
+	}
+
 	return nil
 }
 
