@@ -31,7 +31,7 @@ const (
 	metadataTable = "saphana.table"
 )
 
-// Writer implements a writer logic for db2 destination.
+// Writer implements a writer logic for Sap hana destination.
 type Writer struct {
 	db          *sqlx.DB
 	table       string
@@ -207,7 +207,7 @@ func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 }
 
 // extractColumnsAndValues turns the payload into slices of
-// columns and values for inserting into db2.
+// columns and values.
 func (w *Writer) extractColumnsAndValues(payload sdk.StructuredData) ([]string, []any) {
 	var (
 		columns []string

@@ -34,8 +34,8 @@ import (
 type actionType string
 
 const (
-	trackingTablePattern = "CONDUIT_TRACKING_%s"
-	triggerNamePattern   = "cd_%s_%s"
+	trackingTablePattern = "CONDUIT_%s_%s"
+	triggerNamePattern   = "CD_%s_%s_%s"
 
 	// tracking table columns.
 	columnOperationType = "CONDUIT_OPERATION_TYPE"
@@ -155,6 +155,7 @@ func (i *cdcIterator) HasNext(ctx context.Context) (bool, error) {
 }
 
 // Next get new record.
+// nolint:funlen,nolintlint
 func (i *cdcIterator) Next(ctx context.Context) (sdk.Record, error) {
 	row := make(map[string]any)
 	if err := i.rows.MapScan(row); err != nil {
@@ -176,7 +177,11 @@ func (i *cdcIterator) Next(ctx context.Context) (sdk.Record, error) {
 		return sdk.Record{}, ErrWrongTrackingOperatorType
 	}
 
-	pos := position.Position{IteratorType: position.TypeCDC, CDCLastID: int(id)}
+	pos := position.Position{
+		IteratorType: position.TypeCDC,
+		CDCLastID:    int(id),
+		SuffixName:   i.trackingTable[len(i.trackingTable)-6:],
+	}
 
 	convertedPosition, err := pos.ConvertToSDKPosition()
 	if err != nil {
@@ -377,7 +382,7 @@ func (i *cdcIterator) clearTrackingTable(ctx context.Context) {
 func setupCDC(
 	ctx context.Context,
 	db *sqlx.DB,
-	tableName, trackingTableName string,
+	tableName, trackingTableName, suffixName string,
 	tableInfo columntypes.TableInfo,
 ) error {
 	var trackingTableExist bool
@@ -419,7 +424,7 @@ func setupCDC(
 	}
 
 	// setup triggers for catch insert, delete, update operations.
-	err = setTriggers(ctx, tx, tableInfo.ColumnTypes, tableName, trackingTableName)
+	err = setTriggers(ctx, tx, tableInfo.ColumnTypes, tableName, trackingTableName, suffixName)
 	if err != nil {
 		return fmt.Errorf("setup tirggers: %w", err)
 	}
@@ -436,11 +441,11 @@ func setTriggers(
 	ctx context.Context,
 	tx *sql.Tx,
 	columnTypes map[string]string,
-	tableName, trackingTableName string,
+	tableName, trackingTableName, suffixName string,
 ) error {
-	triggerInsertName := fmt.Sprintf(triggerNamePattern, tableName, insertOperation)
-	triggerUpdateName := fmt.Sprintf(triggerNamePattern, tableName, updateOperation)
-	triggerDeleteName := fmt.Sprintf(triggerNamePattern, tableName, deleteOperation)
+	triggerInsertName := fmt.Sprintf(triggerNamePattern, tableName, insertOperation, suffixName)
+	triggerUpdateName := fmt.Sprintf(triggerNamePattern, tableName, updateOperation, suffixName)
+	triggerDeleteName := fmt.Sprintf(triggerNamePattern, tableName, deleteOperation, suffixName)
 
 	columnNames := make([]string, len(columnTypes))
 	nwVal := make([]string, len(columnTypes))
