@@ -29,7 +29,7 @@ const (
 	TypeCDC      = "c"
 )
 
-// Position represents DB2 position.
+// Position represents SAP Hana position.
 type Position struct {
 	// IteratorType - shows in what iterator was created position.
 	IteratorType IteratorType
@@ -41,8 +41,10 @@ type Position struct {
 	SnapshotMaxValue any
 
 	// CDC information.
-	// CDCID - last processed id from tracking table.
+	// CDCLastID - last processed id from tracking table.
 	CDCLastID int
+	// SuffixName special suffix that connector uses for identify tracking table and triggers.
+	SuffixName string
 }
 
 // ParseSDKPosition parses SDK position and returns Position.

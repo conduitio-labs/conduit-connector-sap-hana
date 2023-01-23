@@ -17,6 +17,7 @@ package iterator
 import (
 	"context"
 	"fmt"
+	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/jmoiron/sqlx"
@@ -63,20 +64,21 @@ type CombinedParams struct {
 
 // NewCombinedIterator - create new iterator.
 func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedIterator, error) {
-	it := &CombinedIterator{
-		db:             params.DB,
-		table:          params.Table,
-		orderingColumn: params.OrderingColumn,
-		batchSize:      params.BatchSize,
-		trackingTable:  fmt.Sprintf(trackingTablePattern, params.Table),
-	}
-
 	pos, err := position.ParseSDKPosition(params.SdkPosition)
 	if err != nil {
 		return nil, fmt.Errorf("parse position: %w", err)
 	}
 
-	// get column types for converting and get primary keys information
+	suffixName := getSuffixName(pos)
+
+	it := &CombinedIterator{
+		db:             params.DB,
+		table:          params.Table,
+		orderingColumn: params.OrderingColumn,
+		batchSize:      params.BatchSize,
+		trackingTable:  fmt.Sprintf(trackingTablePattern, params.Table, suffixName),
+	}
+
 	it.tableInfo, err = columntypes.GetTableInfo(ctx, params.DB, params.Table)
 	if err != nil {
 		return nil, fmt.Errorf("get table info: %w", err)
@@ -84,7 +86,7 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 
 	it.setKeys(params.CfgKeys)
 
-	err = setupCDC(ctx, it.db, it.table, it.trackingTable, it.tableInfo)
+	err = setupCDC(ctx, it.db, it.table, it.trackingTable, suffixName, it.tableInfo)
 	if err != nil {
 		return nil, fmt.Errorf("setup cdc: %w", err)
 	}
@@ -98,6 +100,7 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 			batchSize:      it.batchSize,
 			position:       pos,
 			columnTypes:    it.tableInfo.ColumnTypes,
+			suffixName:     suffixName,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("new shapshot iterator: %w", err)
@@ -234,4 +237,14 @@ func (c *CombinedIterator) setKeys(cfgKeys []string) {
 
 	// last priority ordering column.
 	c.keys = []string{c.orderingColumn}
+}
+
+func getSuffixName(pos *position.Position) string {
+	// get suffix from position
+	if pos != nil {
+		return pos.SuffixName
+	}
+
+	// create new suffix
+	return time.Now().Format("150405")
 }
