@@ -17,6 +17,7 @@ package source
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 
@@ -51,6 +52,10 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	if err := s.config.Auth.Validate(); err != nil {
 		return fmt.Errorf("validate auth config: %w", err)
 	}
+
+	// Column names and table are uppercase for Sap Hana database.
+	s.config.OrderingColumn = strings.ToUpper(s.config.OrderingColumn)
+	s.config.Table = strings.ToUpper(s.config.Table)
 
 	return nil
 }

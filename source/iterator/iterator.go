@@ -17,6 +17,7 @@ package iterator
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -225,6 +226,10 @@ func (c *CombinedIterator) switchToCDCIterator(ctx context.Context) error {
 func (c *CombinedIterator) setKeys(cfgKeys []string) {
 	// first priority keys from config.
 	if len(cfgKeys) > 0 {
+		for i := range cfgKeys {
+			cfgKeys[i] = strings.ToUpper(cfgKeys[i])
+		}
+
 		c.keys = cfgKeys
 
 		return
