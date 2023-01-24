@@ -99,8 +99,8 @@ func (t TableInfo) GetColumnQueryPart() string {
 			cl = fmt.Sprintf("%s(%d)", cl, t.ColumnLengths[key])
 		}
 		// add length and scale, only for decimal type
-		if val == decimalType {
-			cl = fmt.Sprintf("%s(%d,%d)", cl, t.ColumnLengths[key], t.ColumnScales[key])
+		if val == decimalType && t.ColumnScales[key] != nil {
+			cl = fmt.Sprintf("%s(%d,%d)", cl, t.ColumnLengths[key], *t.ColumnScales[key])
 		}
 
 		columns = append(columns, cl)
