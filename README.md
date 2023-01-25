@@ -2,7 +2,7 @@
 
 ## General
 
-The [SAP HANA](https://help.sap.com/docs/) connector is one of Conduit plugins. It provides both, a source and a
+The [SAP HANA](https://www.sap.com/products/technology-platform/hana/what-is-sap-hana.html) connector is one of Conduit plugins. It provides both, a source and a
 destination Sap Hana connector.
 
 ### Prerequisites
@@ -62,7 +62,7 @@ When all records are returned, the connector switches to the CDC iterator.
 
 This connector implements CDC features for DB2 by adding a tracking table and triggers to populate it. The tracking
 table has the same name as a target table with the prefix `CONDUIT_` and suffix from time when pipeline started on
-format "hhmmss". For example for table `PRODUCTS` tracking will be looks like `CONDUIT_PRODUCT_213315`. 
+format "hhmmss". For example for table `PRODUCTS` tracking will be looks like `CONDUIT_PRODUCTS_213315`. 
 The tracking table has all the same columns as the target table plus two additional columns:
 
 | name                            | description                                      |
@@ -93,9 +93,9 @@ to get row where `{{CONDUIT_TRACKING_ID}}` > `{{position.CDCLastID}}`.
 
 <b>Please pay attention</b>
 
-Tracking table and triggers are saved after removing pipeline. You can clear it uses commands.
+Tracking table and triggers are stayed after removing pipeline. You can clear it uses commands.
 ```sql
-  DROP TABLE CONDUIT_{{YOUR_TABLE_NAME}}_{{SUFFIX}};
+  DROP TABLE CONDUIT_{{YOUR_TABLE_NAME}}_{{SUFFIXNAME}};
   DROP TRIGGER CD_{{TABLENAME}}_INSERT_{{SUFFIXNAME}};
   DROP TRIGGER CD_{{TABLENAME}}_UPDATE_{{SUFFIXNAME}};
   DROP TRIGGER CD_{{TABLENAME}}_DELETE_{{SUFFIXNAME}};
@@ -118,9 +118,3 @@ ALTER TABLE CONDUIT_CLIENTS_{suffix}
 #### I accidentally removed tracking table.
 
 You have to restart pipeline, tracking table will be recreated by connector.
-
-
-#### Is it possible to change table name?
-
-Yes. Stop the pipeline, change the value of the `table` in the Source configuration,
-change the name of the tracking table using a pattern `CONDUIT_TRACKING_{{TABLE}}`
