@@ -19,12 +19,11 @@ package saphana
 import (
 	sdk "github.com/conduitio/conduit-connector-sdk"
 
-	"github.com/conduitio-labs/conduit-connector-sap-hana/destination"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source"
 )
 
 var Connector = sdk.Connector{
 	NewSpecification: Specification,
 	NewSource:        source.New,
-	NewDestination:   destination.New,
+	NewDestination:   nil,
 }
