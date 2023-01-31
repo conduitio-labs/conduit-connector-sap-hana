@@ -118,3 +118,28 @@ ALTER TABLE CONDUIT_CLIENTS_{suffix}
 #### I accidentally removed tracking table.
 
 You have to restart pipeline, tracking table will be recreated by connector.
+
+
+## Destination
+
+The Sap Hana Destination takes a `sdk.Record` and parses it into a valid SQL query.
+
+### Configuration Options
+
+| Name                        | Description                                                                                                                                                                                     | Required                                  | Example                                        |
+|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------------------------------------------|
+| `table`                     | The name of a table in the database that the connector should  write to, by default.                                                                                                            | **true**                                  | users                                          |
+| `auth.mechanism`            | Mechanism type of auth. Valid types: DSN, Basic, JWT, X509. By default is DSN.                                                                                                                  | false                                     | DSN                                            |
+| `auth.dsn`                  | DSN connection string                                                                                                                                                                           | Required for DSN auth type.               | hdb://user:password@host443?TLSServerName=name |
+| `auth.host`                 | Sap Hana database host.                                                                                                                                                                         | Required for Basic, JWT, X509 auth types. | hdb://hanacloud.ondemand.com:443               |
+| `auth.username`             | Sap Hana user                                                                                                                                                                                   | Required for Basic type.                  | hbadmin                                        |
+| `auth.password`             | Sap Hana password                                                                                                                                                                               | Required for Basic type.                  | pass                                           |
+| `auth.token`                | JWT token                                                                                                                                                                                       | Required for JWT type.                    | jwt_token                                      |
+| `auth.clientCertFilePath`   | Path for certification file                                                                                                                                                                     | Required for X509 type.                   | /tmp/file.cert                                 |
+| `auth.ClientKeyFilePath`    | Path for key file                                                                                                                                                                               | Required for X509 type.                   | /tmp/key.cert                                  |
+
+### Table name
+
+If a record contains a `saphana.table` property in its metadata it will be inserted in that table, otherwise it will fall back
+to use the table configured in the connector. Thus, a destination can support multiple tables in a single connector,
+as long as the user has proper access to those tables.
