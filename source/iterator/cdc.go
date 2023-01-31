@@ -397,7 +397,7 @@ func setupCDC(
 	// check if table exist.
 	rows, err := tx.QueryContext(ctx, queryIfTableExist, trackingTableName)
 	if err != nil {
-		return fmt.Errorf("query exist table: %w", err)
+		return fmt.Errorf("execute query exist table: %w", err)
 	}
 
 	defer rows.Close() //nolint:staticcheck,nolintlint
@@ -426,7 +426,7 @@ func setupCDC(
 	// setup triggers for catch insert, delete, update operations.
 	err = setTriggers(ctx, tx, tableInfo.ColumnTypes, tableName, trackingTableName, suffixName)
 	if err != nil {
-		return fmt.Errorf("setup tirggers: %w", err)
+		return fmt.Errorf("setup triggers: %w", err)
 	}
 
 	err = tx.Commit()
