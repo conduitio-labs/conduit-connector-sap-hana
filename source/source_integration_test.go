@@ -653,7 +653,7 @@ func prepareConfigMap(table string) (map[string]string, error) {
 	dsn := os.Getenv("SAP_HANA_DSN")
 
 	if dsn == "" {
-		return map[string]string{}, errors.New("SAP_HANA_DSN")
+		return map[string]string{}, errors.New("missed env variable SAP_HANA_DSN")
 	}
 
 	return map[string]string{
