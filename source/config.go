@@ -25,7 +25,7 @@ type Config struct {
 	// OrderingColumn is a name of a column that the connector will use for ordering rows.
 	OrderingColumn string `json:"orderingColumn" validate:"required"`
 	// BatchSize is a size of rows batch.
-	BatchSize int `json:"batchSize" default:"1000" validate:"gt=0,lt=10000"`
+	BatchSize int `json:"batchSize" default:"1000" validate:"gt=0,lt=10001"`
 	// PrimaryKeys list of column names should use for their `Key` fields.
 	PrimaryKeys []string `json:"primaryKeys"`
 	// Snapshot whether or not the plugin will take a snapshot of the entire table before starting cdc.
