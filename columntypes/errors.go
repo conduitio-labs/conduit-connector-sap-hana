@@ -20,9 +20,12 @@ import (
 )
 
 var (
-	ErrValueIsNotAString         = errors.New("value is not a string")
-	ErrCannotConvertValueToBytes = errors.New("cannot convert value to byte slice")
-	ErrInvalidTimeLayout         = errors.New("invalid time layout")
+	ErrValueIsNotAString                = errors.New("value is not a string")
+	ErrCannotConvertValueToBytes        = errors.New("cannot convert value to byte slice")
+	ErrCannotConvertValueToDecimal      = errors.New("cannot convert value to decimal")
+	ErrInvalidDecimalStringPresentation = errors.New("invalid decimal string presentation")
+	ErrCannotConvertToInt               = errors.New("cannot convert value to int type")
+	ErrInvalidTimeLayout                = errors.New("invalid time layout")
 )
 
 // convertValueToBytesErr returns the formatted ErrCannotConvertValueToBytes error.

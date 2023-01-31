@@ -19,10 +19,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/SAP/go-hdb/driver"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -47,7 +51,11 @@ const (
 	varbinaryType = "VARBINARY"
 
 	// sap hana decimal type.
-	decimalType = "DECIMAL"
+	decimalType      = "DECIMAL"
+	realType         = "REAL"
+	doubleType       = "DOUBLE"
+	floatType        = "FLOAT"
+	smallDecimalType = "SMALLDECIMAL"
 )
 
 const (
@@ -200,9 +208,7 @@ func ConvertStructureData(
 		}
 
 		// sap hana doesn't have json type or similar.
-		// string types can replace it.
-		switch reflect.TypeOf(value).Kind() { //nolint:exhaustive // need to check only these cases
-		case reflect.Map, reflect.Slice:
+		if reflect.TypeOf(value).Kind() == reflect.Map {
 			bs, err := json.Marshal(value)
 			if err != nil {
 				return nil, fmt.Errorf("marshal: %w", err)
@@ -214,7 +220,7 @@ func ConvertStructureData(
 		}
 
 		// Converting value to time if it is string.
-		switch columnTypes[strings.ToLower(key)] {
+		switch columnTypes[strings.ToUpper(key)] {
 		case dateType, timeType, secondDateType, timestampType:
 			_, ok := value.(time.Time)
 			if ok {
@@ -234,6 +240,13 @@ func ConvertStructureData(
 			}
 
 			result[key] = timeValue
+		case decimalType, smallDecimalType:
+			decValue, err := convertToDecimal(value)
+			if err != nil {
+				return nil, fmt.Errorf("convert to decimal: %w", err)
+			}
+
+			result[key] = decValue
 		default:
 			result[key] = value
 		}
@@ -282,4 +295,68 @@ func parseToTime(val string) (time.Time, error) {
 	}
 
 	return time.Time{}, fmt.Errorf("%s - %w", val, ErrInvalidTimeLayout)
+}
+
+// convertToDecimal - convert variable to special Sap HANA decimal type.
+func convertToDecimal(val any) (*driver.Decimal, error) {
+	switch reflect.TypeOf(val).Kind() { //nolint:exhaustive,nolintlint
+	case reflect.Float64, reflect.Float32:
+		return convertStrToDecimal(fmt.Sprintf("%g", val))
+	case reflect.String:
+		strVal := fmt.Sprintf("%s", val)
+		if strings.Contains(strVal, ".") { // usual case, for example 110.45
+			return convertStrToDecimal(strVal)
+		}
+		if strings.Contains(strVal, "/") { // sap hana case, for example  11045/100
+			parts := strings.Split(strVal, "/")
+			if len(parts) != 2 { //nolint:gomnd,nolintlint
+				return nil, ErrInvalidDecimalStringPresentation
+			}
+
+			a, err := strconv.ParseInt(parts[0], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse to int64: %w", err)
+			}
+
+			b, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse to int64: %w", err)
+			}
+
+			return (*driver.Decimal)(big.NewRat(a, b)), nil
+		}
+	case reflect.Int64, reflect.Int32:
+		intVal, ok := val.(int64)
+		if !ok {
+			return nil, ErrCannotConvertToInt
+		}
+
+		return (*driver.Decimal)(big.NewRat(intVal, 1)), nil
+	default:
+		return nil, ErrCannotConvertValueToDecimal
+	}
+
+	return nil, ErrCannotConvertValueToDecimal
+}
+
+func convertStrToDecimal(strVal string) (*driver.Decimal, error) {
+	parts := strings.Split(strVal, ".")
+	if len(parts) == 1 { //nolint:gomnd,nolintlint
+		i, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse to int64: %w", err)
+		}
+
+		return (*driver.Decimal)(big.NewRat(i, 1)), nil
+	}
+	if len(parts) == 2 { //nolint:gomnd,nolintlint
+		ft, err := strconv.ParseInt(strings.Join(parts, ""), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse to int64: %w", err)
+		}
+
+		return (*driver.Decimal)(big.NewRat(ft, int64(math.Pow(10, float64(len(parts[1])))))), nil //nolint:gomnd,nolintlint
+	}
+
+	return nil, ErrInvalidDecimalStringPresentation
 }

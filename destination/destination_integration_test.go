@@ -42,6 +42,16 @@ const (
 			cl_varbinary VARBINARY(20)
 		)
 `
+	queryCreateTableDecimalTest = `
+		CREATE TABLE %s(
+			dec_1 DECIMAL,
+			dec_2 DECIMAL,
+			dec_3 DECIMAL,
+			dec_4 DECIMAL,
+			dec_5 DECIMAL,
+			dec_6 DECIMAL
+		)
+`
 	queryDropTable = `
   		 DROP TABLE %s;
 `
@@ -514,6 +524,86 @@ func TestIntegrationDestination_Write_Delete_Success(t *testing.T) {
 
 	if count != 0 {
 		t.Error(errors.New("count not zero"))
+	}
+}
+
+func TestIntegrationDestination_Decimal_Transformation(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tableName := randomIdentifier(t)
+
+	cfg, err := prepareConfigMap(tableName)
+	if err != nil {
+		t.Log(err)
+		t.Skip()
+	}
+
+	db, err := sqlx.Open(driverName, cfg[dsnKey])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = db.PingContext(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// prepare data
+	_, err = db.ExecContext(ctx, fmt.Sprintf(queryCreateTableDecimalTest, tableName))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		_, err = db.ExecContext(ctx, fmt.Sprintf(queryDropTable, tableName))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		db.Close()
+	})
+
+	dest := New()
+
+	err = dest.Configure(ctx, cfg)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = dest.Open(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+
+	preparedData := map[string]any{
+		"dec_1": 103.6548,
+		"dec_2": "103.6548",
+		"dec_3": "1036548/1000",
+		"dec_4": int64(103),
+		"dec_5": int32(103),
+		"dec_6": float32(103.6548),
+	}
+
+	count, err := dest.Write(ctx, []sdk.Record{
+		{
+			Payload:   sdk.Change{After: sdk.StructuredData(preparedData)},
+			Operation: sdk.OperationSnapshot,
+			Key:       sdk.StructuredData{"id": "1"},
+		},
+	},
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if count != 1 {
+		t.Error(errors.New("count mismatched"))
+	}
+
+	err = dest.Teardown(ctx)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
