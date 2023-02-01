@@ -65,7 +65,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 			Type:        sdk.ParameterTypeInt,
 			Validations: []sdk.Validation{
 				sdk.ValidationGreaterThan{Value: 0},
-				sdk.ValidationLessThan{Value: 10000},
+				sdk.ValidationLessThan{Value: 10001},
 			},
 		},
 		"orderingColumn": {
