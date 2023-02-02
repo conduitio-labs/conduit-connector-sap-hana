@@ -70,8 +70,8 @@ const (
 		WHERE 
 		  TABLE_NAME = $1 
 		  AND IS_PRIMARY_KEY = 'TRUE'
-
 `
+	queryIfTableExist = `SELECT count(*) AS count FROM TABLES WHERE TABLE_NAME = $1`
 )
 
 // column types where length is required parameter.
@@ -133,14 +133,36 @@ type Querier interface {
 
 // GetTableInfo returns a map containing all table's columns and their database types
 // and returns primary columns names.
+//
+//nolint:funlen,nolintlint
 func GetTableInfo(ctx context.Context, querier Querier, tableName string) (TableInfo, error) {
 	var primaryKeys []string
+
+	// check if table exist.
+	rows, err := querier.QueryContext(ctx, queryIfTableExist, tableName)
+	if err != nil {
+		return TableInfo{}, fmt.Errorf("execute query exist table: %w", err)
+	}
+
+	defer rows.Close() //nolint:staticcheck,nolintlint
+
+	for rows.Next() {
+		var count int
+		er := rows.Scan(&count)
+		if er != nil {
+			return TableInfo{}, fmt.Errorf("scan: %w", err)
+		}
+
+		if count == 0 {
+			return TableInfo{}, fmt.Errorf("table %s doesn't exist", tableName)
+		}
+	}
 
 	columnTypes := make(map[string]string)
 	columnLengths := make(map[string]int)
 	columnScales := make(map[string]*int)
 
-	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
+	rows, err = querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
