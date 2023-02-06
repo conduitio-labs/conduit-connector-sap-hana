@@ -54,6 +54,6 @@ func ConnectToDB(c config.AuthConfig) (*sqlx.DB, error) {
 
 		return sqlx.NewDb(sql.OpenDB(con), driverName), nil
 	default:
-		return nil, config.ErrInvalidAuthMechanism
+		return nil, fmt.Errorf("invalid auth mechanism :%s", c.Mechanism)
 	}
 }

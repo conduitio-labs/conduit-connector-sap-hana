@@ -90,6 +90,7 @@ type TableInfo struct {
 }
 
 // GetColumnQueryPart prepare query part about creation column for tracking table.
+// For example: NAME VARCHAR(40), AGE INT, ADDRESS VARCHAR(120).
 func (t TableInfo) GetColumnQueryPart() string {
 	var columns []string
 	for key, val := range t.ColumnTypes {
@@ -148,9 +149,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 
 	for rows.Next() {
 		var count int
-		er := rows.Scan(&count)
-		if er != nil {
-			return TableInfo{}, fmt.Errorf("scan: %w", err)
+		scanErr := rows.Scan(&count)
+		if scanErr != nil {
+			return TableInfo{}, fmt.Errorf("scan: %w", scanErr)
 		}
 
 		if count == 0 {
@@ -206,8 +207,8 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 	}, nil
 }
 
-// ConvertStructureData converts a sdk.StructureData values to a proper database types.
-func ConvertStructureData(
+// ConvertStructuredData converts a sdk.StructureData values to a proper database types.
+func ConvertStructuredData(
 	ctx context.Context,
 	columnTypes map[string]string,
 	data sdk.StructuredData,
@@ -236,7 +237,7 @@ func ConvertStructureData(
 		}
 
 		// Converting value to time if it is string.
-		switch columnTypes[strings.ToLower(key)] {
+		switch columnTypes[strings.ToUpper(key)] {
 		case dateType, timeType, secondDateType, timestampType:
 			_, ok := value.(time.Time)
 			if ok {

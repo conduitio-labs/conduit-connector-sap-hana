@@ -178,9 +178,9 @@ func (i *cdcIterator) Next(ctx context.Context) (sdk.Record, error) {
 	}
 
 	pos := position.Position{
-		IteratorType: position.TypeCDC,
-		CDCLastID:    int(id),
-		SuffixName:   i.trackingTable[len(i.trackingTable)-6:],
+		IteratorType:      position.TypeCDC,
+		CDCLastID:         int(id),
+		TrackingTableName: i.trackingTable,
 	}
 
 	convertedPosition, err := pos.ConvertToSDKPosition()
@@ -224,8 +224,8 @@ func (i *cdcIterator) Next(ctx context.Context) (sdk.Record, error) {
 }
 
 // Stop shutdown iterator.
-func (i *cdcIterator) Stop() error {
-	// send signal for finish clear tracking table.
+func (i *cdcIterator) Stop(ctx context.Context) error {
+	// send signal to finish clearing tracking table rows.
 	i.tableSrv.stopCh <- struct{}{}
 
 	if i.rows != nil {
@@ -236,8 +236,9 @@ func (i *cdcIterator) Stop() error {
 	}
 
 	select {
-	// wait until clearing tracking table will be finished.
+	// when tracking table will be empty we get signal about it, so connector can close connection
 	case <-i.tableSrv.canCloseCh:
+		sdk.Logger(ctx).Debug().Msg("clearing tracking table was successfully finished")
 		if i.db != nil {
 			i.tableSrv.close()
 
@@ -246,8 +247,9 @@ func (i *cdcIterator) Stop() error {
 				return fmt.Errorf("close db:%w", err)
 			}
 		}
-	// waiting timeout.
+	// just in case if something wrong with clearing table, connector will close db after timeout.
 	case <-time.After(waitingTimeoutSec * time.Second):
+		sdk.Logger(ctx).Warn().Msg("close db after timeout")
 		if i.db != nil {
 			i.tableSrv.close()
 
@@ -382,7 +384,7 @@ func (i *cdcIterator) clearTrackingTable(ctx context.Context) {
 func setupCDC(
 	ctx context.Context,
 	db *sqlx.DB,
-	tableName, trackingTableName, suffixName string,
+	tableName, trackingTableName string,
 	tableInfo columntypes.TableInfo,
 ) error {
 	var trackingTableExist bool
@@ -424,7 +426,8 @@ func setupCDC(
 	}
 
 	// setup triggers for catch insert, delete, update operations.
-	err = setTriggers(ctx, tx, tableInfo.ColumnTypes, tableName, trackingTableName, suffixName)
+	err = setTriggers(ctx, tx, tableInfo.ColumnTypes, tableName,
+		trackingTableName, trackingTableName[len(trackingTableName)-6:])
 	if err != nil {
 		return fmt.Errorf("setup triggers: %w", err)
 	}

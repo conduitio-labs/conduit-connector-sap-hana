@@ -70,14 +70,14 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 		return nil, fmt.Errorf("parse position: %w", err)
 	}
 
-	suffixName := getSuffixName(pos)
+	trakingTableName := getTrackingTableName(pos, params.Table)
 
 	it := &CombinedIterator{
 		db:             params.DB,
 		table:          params.Table,
 		orderingColumn: params.OrderingColumn,
 		batchSize:      params.BatchSize,
-		trackingTable:  fmt.Sprintf(trackingTablePattern, params.Table, suffixName),
+		trackingTable:  trakingTableName,
 	}
 
 	it.tableInfo, err = columntypes.GetTableInfo(ctx, params.DB, params.Table)
@@ -85,9 +85,9 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 		return nil, fmt.Errorf("get table info: %w", err)
 	}
 
-	it.setKeys(params.CfgKeys)
+	it.setKeys(params.CfgKeys, it.tableInfo.PrimaryKeys)
 
-	err = setupCDC(ctx, it.db, it.table, it.trackingTable, suffixName, it.tableInfo)
+	err = setupCDC(ctx, it.db, it.table, it.trackingTable, it.tableInfo)
 	if err != nil {
 		return nil, fmt.Errorf("setup cdc: %w", err)
 	}
@@ -101,7 +101,7 @@ func NewCombinedIterator(ctx context.Context, params CombinedParams) (*CombinedI
 			batchSize:      it.batchSize,
 			position:       pos,
 			columnTypes:    it.tableInfo.ColumnTypes,
-			suffixName:     suffixName,
+			trackingTable:  it.trackingTable,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("new shapshot iterator: %w", err)
@@ -170,13 +170,13 @@ func (c *CombinedIterator) Next(ctx context.Context) (sdk.Record, error) {
 }
 
 // Stop the underlying iterators.
-func (c *CombinedIterator) Stop() error {
+func (c *CombinedIterator) Stop(ctx context.Context) error {
 	if c.snapshot != nil {
 		return c.snapshot.Stop()
 	}
 
 	if c.cdc != nil {
-		return c.cdc.Stop()
+		return c.cdc.Stop(ctx)
 	}
 
 	return nil
@@ -223,7 +223,7 @@ func (c *CombinedIterator) switchToCDCIterator(ctx context.Context) error {
 	return nil
 }
 
-func (c *CombinedIterator) setKeys(cfgKeys []string) {
+func (c *CombinedIterator) setKeys(cfgKeys, tableKeys []string) {
 	// first priority keys from config.
 	if len(cfgKeys) > 0 {
 		for i := range cfgKeys {
@@ -236,7 +236,9 @@ func (c *CombinedIterator) setKeys(cfgKeys []string) {
 	}
 
 	// second priority primary keys from table.
-	if len(c.keys) > 0 {
+	if len(tableKeys) > 0 {
+		c.keys = tableKeys
+
 		return
 	}
 
@@ -244,12 +246,11 @@ func (c *CombinedIterator) setKeys(cfgKeys []string) {
 	c.keys = []string{c.orderingColumn}
 }
 
-func getSuffixName(pos *position.Position) string {
-	// get suffix from position
+func getTrackingTableName(pos *position.Position, table string) string {
 	if pos != nil {
-		return pos.SuffixName
+		return pos.TrackingTableName
 	}
 
 	// create new suffix
-	return time.Now().Format("150405")
+	return fmt.Sprintf(trackingTablePattern, table, time.Now().Format("150405"))
 }

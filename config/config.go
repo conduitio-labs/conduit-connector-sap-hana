@@ -14,6 +14,10 @@
 
 package config
 
+import (
+	"fmt"
+)
+
 const (
 	// DSNAuthType name of DSN auth.
 	DSNAuthType string = "DSN"
@@ -59,45 +63,49 @@ func (a *AuthConfig) Validate() error {
 	switch a.Mechanism {
 	case DSNAuthType:
 		if a.DSN == "" {
-			return errRequiredDSNParameter
+			return requiredAuthParam(DSNAuthType, "DSN")
 		}
 
 		return nil
 	case BasicAuthType:
 		if a.Host == "" {
-			return errRequiredHostParameter
+			return requiredAuthParam(BasicAuthType, "host")
 		}
 		if a.Username == "" {
-			return errRequiredUsernameParameter
+			return requiredAuthParam(BasicAuthType, "username")
 		}
 		if a.Password == "" {
-			return errRequiredPasswordParameter
+			return requiredAuthParam(BasicAuthType, "password")
 		}
 
 		return nil
 	case JWTAuthType:
 		if a.Host == "" {
-			return errRequiredHostParameter
+			return requiredAuthParam(JWTAuthType, "host")
 		}
 		if a.Token == "" {
-			return errRequiredTokenParameter
+			return requiredAuthParam(JWTAuthType, "token")
 		}
 
 		return nil
 
 	case X509AuthType:
 		if a.Host == "" {
-			return errRequiredHostParameter
+			return requiredAuthParam(X509AuthType, "host")
 		}
 		if a.ClientKeyFilePath == "" {
-			return errRequiredClientKeyFileParameter
+			return requiredAuthParam(X509AuthType, "client key file path")
 		}
 		if a.ClientCertFilePath == "" {
-			return errRequiredClientCertFileParameter
+			return requiredAuthParam(X509AuthType, "client cert file path")
 		}
 
 		return nil
 	default:
 		return ErrInvalidAuthMechanism
 	}
+}
+
+func requiredAuthParam(auth, param string) error {
+	return fmt.Errorf("%s is required for %s auth", param, auth)
 }
