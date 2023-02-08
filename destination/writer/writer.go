@@ -108,7 +108,7 @@ func (w *Writer) Update(ctx context.Context, record sdk.Record) error {
 		return ErrNoPayload
 	}
 
-	payload, err = columntypes.ConvertStructureData(ctx, w.columnTypes, payload)
+	payload, err = columntypes.ConvertStructuredData(ctx, w.columnTypes, payload)
 	if err != nil {
 		return fmt.Errorf("convert structure data: %w", err)
 	}
@@ -157,7 +157,7 @@ func (w *Writer) Insert(ctx context.Context, record sdk.Record) error {
 		return ErrNoPayload
 	}
 
-	payload, err = columntypes.ConvertStructureData(ctx, w.columnTypes, payload)
+	payload, err = columntypes.ConvertStructuredData(ctx, w.columnTypes, payload)
 	if err != nil {
 		return fmt.Errorf("convert structure data: %w", err)
 	}

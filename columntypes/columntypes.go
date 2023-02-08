@@ -51,12 +51,8 @@ const (
 	varbinaryType = "VARBINARY"
 
 	// sap hana decimal type.
-	decimalType      = "DECIMAL"
-	realType         = "REAL"
-	doubleType       = "DOUBLE"
-	floatType        = "FLOAT"
 	smallDecimalType = "SMALLDECIMAL"
-	decimalType = "DECIMAL"
+	decimalType      = "DECIMAL"
 )
 
 const (
@@ -233,7 +229,6 @@ func ConvertStructuredData(
 
 		// sap hana doesn't have json type or similar.
 		// string types can replace it.
-		switch reflect.TypeOf(value).Kind() { //nolint:exhaustive // need to check only these cases
 		if reflect.TypeOf(value).Kind() == reflect.Map {
 			bs, err := json.Marshal(value)
 			if err != nil {
