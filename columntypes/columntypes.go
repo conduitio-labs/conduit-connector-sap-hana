@@ -56,6 +56,7 @@ const (
 	doubleType       = "DOUBLE"
 	floatType        = "FLOAT"
 	smallDecimalType = "SMALLDECIMAL"
+	decimalType = "DECIMAL"
 )
 
 const (
@@ -78,8 +79,8 @@ const (
 		WHERE 
 		  TABLE_NAME = $1 
 		  AND IS_PRIMARY_KEY = 'TRUE'
-
 `
+	queryIfTableExist = `SELECT count(*) AS count FROM TABLES WHERE TABLE_NAME = $1`
 )
 
 // column types where length is required parameter.
@@ -98,6 +99,7 @@ type TableInfo struct {
 }
 
 // GetColumnQueryPart prepare query part about creation column for tracking table.
+// For example: NAME VARCHAR(40), AGE INT, ADDRESS VARCHAR(120).
 func (t TableInfo) GetColumnQueryPart() string {
 	var columns []string
 	for key, val := range t.ColumnTypes {
@@ -141,14 +143,36 @@ type Querier interface {
 
 // GetTableInfo returns a map containing all table's columns and their database types
 // and returns primary columns names.
+//
+//nolint:funlen,nolintlint
 func GetTableInfo(ctx context.Context, querier Querier, tableName string) (TableInfo, error) {
 	var primaryKeys []string
+
+	// check if table exist.
+	rows, err := querier.QueryContext(ctx, queryIfTableExist, tableName)
+	if err != nil {
+		return TableInfo{}, fmt.Errorf("execute query exist table: %w", err)
+	}
+
+	defer rows.Close() //nolint:staticcheck,nolintlint
+
+	for rows.Next() {
+		var count int
+		scanErr := rows.Scan(&count)
+		if scanErr != nil {
+			return TableInfo{}, fmt.Errorf("scan: %w", scanErr)
+		}
+
+		if count == 0 {
+			return TableInfo{}, fmt.Errorf("table %s doesn't exist", tableName)
+		}
+	}
 
 	columnTypes := make(map[string]string)
 	columnLengths := make(map[string]int)
 	columnScales := make(map[string]*int)
 
-	rows, err := querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
+	rows, err = querier.QueryContext(ctx, querySchemaColumnTypes, strings.ToUpper(tableName))
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
@@ -192,8 +216,8 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 	}, nil
 }
 
-// ConvertStructureData converts a sdk.StructureData values to a proper database types.
-func ConvertStructureData(
+// ConvertStructuredData converts a sdk.StructureData values to a proper database types.
+func ConvertStructuredData(
 	ctx context.Context,
 	columnTypes map[string]string,
 	data sdk.StructuredData,
@@ -208,6 +232,8 @@ func ConvertStructureData(
 		}
 
 		// sap hana doesn't have json type or similar.
+		// string types can replace it.
+		switch reflect.TypeOf(value).Kind() { //nolint:exhaustive // need to check only these cases
 		if reflect.TypeOf(value).Kind() == reflect.Map {
 			bs, err := json.Marshal(value)
 			if err != nil {

@@ -43,8 +43,8 @@ type Position struct {
 	// CDC information.
 	// CDCLastID - last processed id from tracking table.
 	CDCLastID int
-	// SuffixName special suffix that connector uses for identify tracking table and triggers.
-	SuffixName string
+	// TrackingTableName tracking table name.
+	TrackingTableName string
 }
 
 // ParseSDKPosition parses SDK position and returns Position.

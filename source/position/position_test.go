@@ -30,7 +30,7 @@ func TestParseSDKPosition(t *testing.T) {
 		SnapshotLastProcessedVal: 1,
 		SnapshotMaxValue:         4,
 		CDCLastID:                0,
-		SuffixName:               "test",
+		TrackingTableName:        "test",
 	}
 
 	wrongPosType := Position{
@@ -38,7 +38,7 @@ func TestParseSDKPosition(t *testing.T) {
 		SnapshotLastProcessedVal: 1,
 		SnapshotMaxValue:         4,
 		CDCLastID:                0,
-		SuffixName:               "test",
+		TrackingTableName:        "test",
 	}
 
 	snapshotPosBytes, _ := json.Marshal(snapshotPos)

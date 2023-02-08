@@ -56,8 +56,8 @@ type snapshotIterator struct {
 	position *position.Position
 	// columnTypes column types from table.
 	columnTypes map[string]string
-	// suffixName special suffix that connector uses for identify tracking table and triggers.
-	suffixName string
+	// trackingTable name.
+	trackingTable string
 }
 
 type snapshotParams struct {
@@ -68,7 +68,7 @@ type snapshotParams struct {
 	batchSize      int
 	position       *position.Position
 	columnTypes    map[string]string
-	suffixName     string
+	trackingTable  string
 }
 
 func newSnapshotIterator(
@@ -85,7 +85,7 @@ func newSnapshotIterator(
 		batchSize:      snapshotParams.batchSize,
 		position:       snapshotParams.position,
 		columnTypes:    snapshotParams.columnTypes,
-		suffixName:     snapshotParams.suffixName,
+		trackingTable:  snapshotParams.trackingTable,
 	}
 
 	err = it.loadRows(ctx)
@@ -143,7 +143,7 @@ func (i *snapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 		IteratorType:             position.TypeSnapshot,
 		SnapshotLastProcessedVal: transformedRow[i.orderingColumn],
 		SnapshotMaxValue:         i.maxValue,
-		SuffixName:               i.suffixName,
+		TrackingTableName:        i.trackingTable,
 	}
 
 	sdkPos, err := pos.ConvertToSDKPosition()

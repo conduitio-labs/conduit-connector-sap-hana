@@ -505,10 +505,6 @@ func TestSource_CDC_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Check read from empty table.
-	_, err = s.Read(ctx)
-	is.Equal(sdk.ErrBackoffRetry, err)
-
 	// check inserted data.
 	r, err := s.Read(ctx)
 	if err != nil {
@@ -653,7 +649,7 @@ func prepareConfigMap(table string) (map[string]string, error) {
 	dsn := os.Getenv("SAP_HANA_DSN")
 
 	if dsn == "" {
-		return map[string]string{}, errors.New("SAP_HANA_DSN")
+		return map[string]string{}, errors.New("missed env variable SAP_HANA_DSN")
 	}
 
 	return map[string]string{

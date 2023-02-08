@@ -29,7 +29,7 @@ func Specification() sdk.Specification {
 		Name:    "sap-hana",
 		Summary: "The SAP HANA database source and destination plugin for Conduit, written in Go.",
 		Description: "The SAP HANA  database connector is one of Conduit plugins. " +
-			"It provides both, a source and a destination Sap Hana connector.",
+			"It provides both, a source and a destination SAP HANA connector.",
 		Version: version,
 		Author:  "Meroxa, Inc. & Yalantis",
 	}
