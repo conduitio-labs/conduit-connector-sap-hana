@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package saphana implements SAP HANA database connector for Conduit.
-// It provides both, a source and a destination SAP HANA connector.
-package saphana
+package position
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
-	"github.com/conduitio-labs/conduit-connector-sap-hana/source"
+	"errors"
 )
 
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.New,
-	NewDestination:   nil,
-}
+var ErrUnknownIteratorType = errors.New("unknown iterator type")

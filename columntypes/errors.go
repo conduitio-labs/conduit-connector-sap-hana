@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package saphana implements SAP HANA database connector for Conduit.
-// It provides both, a source and a destination SAP HANA connector.
-package saphana
+package columntypes
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
-	"github.com/conduitio-labs/conduit-connector-sap-hana/source"
+	"errors"
+	"fmt"
 )
 
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.New,
-	NewDestination:   nil,
+var (
+	ErrValueIsNotAString         = errors.New("value is not a string")
+	ErrCannotConvertValueToBytes = errors.New("cannot convert value to byte slice")
+	ErrInvalidTimeLayout         = errors.New("invalid time layout")
+)
+
+// convertValueToBytesErr returns the formatted ErrCannotConvertValueToBytes error.
+func convertValueToBytesErr(name string) error {
+	return fmt.Errorf("%w: %q", ErrCannotConvertValueToBytes, name)
 }
