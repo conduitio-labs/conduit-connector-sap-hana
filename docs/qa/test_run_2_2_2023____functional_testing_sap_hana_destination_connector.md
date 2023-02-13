@@ -1,3 +1,9 @@
+**Test Run 2/2/2023 - Functional testing SAP HANA Destination connector**
+
+**branch:** https://github.com/conduitio-labs/conduit-connector-sap-hana/tree/development
+
+**commit** 1b2e057c8a29dbacd88823a8e558ce68901da7ee
+
 | ID       | Title                                                                                                                                                                                                                                                  | Status | Comment |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------- |
 | T3414861 | \----------------Required config------------------                                                                                                                                                                                                     | Passed |         |
