@@ -1,3 +1,9 @@
+**Test Run 1/30/2023 - Functional testing SAP HANA Source connector**
+
+**branch:** https://github.com/conduitio-labs/conduit-connector-sap-hana/tree/source
+
+**commit** cdad314d55de6376b2e4cad42083a6ca1734da93
+
 | ID       | Title                                                                                                                                                                                                                                                         | Status | Comment |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
 | T3391354 | \----------------Required config------------------                                                                                                                                                                                                            | Passed |         |
