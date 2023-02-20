@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/SAP/go-hdb v0.111.7
-	github.com/conduitio/conduit-connector-sdk v0.5.0
+	github.com/conduitio/conduit-connector-sdk v0.5.1
 	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.19.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -37,7 +37,7 @@ require (
 	github.com/spf13/cast v1.3.1 // indirect
 	go.buf.build/grpc/go/conduitio/conduit-connector-protocol v1.4.5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/goleak v1.2.0 // indirect
+	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
