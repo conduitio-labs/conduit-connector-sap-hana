@@ -3,7 +3,7 @@ module github.com/conduitio-labs/conduit-connector-sap-hana
 go 1.19
 
 require (
-	github.com/SAP/go-hdb v1.3.1
+	github.com/SAP/go-hdb v1.3.4
 	github.com/conduitio/conduit-connector-sdk v0.6.0
 	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.21.0
@@ -38,7 +38,7 @@ require (
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
