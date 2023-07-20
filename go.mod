@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/SAP/go-hdb v1.3.10
-	github.com/conduitio/conduit-connector-sdk v0.6.0
+	github.com/conduitio/conduit-connector-sdk v0.7.0
 	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.21.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -32,7 +32,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/oklog/run v1.0.0 // indirect
-	github.com/rs/zerolog v1.29.0 // indirect
+	github.com/rs/zerolog v1.29.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
