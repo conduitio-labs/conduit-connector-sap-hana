@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/SAP/go-hdb v1.3.10
-	github.com/conduitio/conduit-connector-sdk v0.7.0
+	github.com/conduitio/conduit-connector-sdk v0.7.1
 	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.22.0
 	github.com/jmoiron/sqlx v1.3.5
