@@ -3,7 +3,7 @@ module github.com/conduitio-labs/conduit-connector-sap-hana
 go 1.19
 
 require (
-	github.com/SAP/go-hdb v1.3.11
+	github.com/SAP/go-hdb v1.3.12
 	github.com/conduitio/conduit-connector-sdk v0.7.2
 	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.22.0
