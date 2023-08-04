@@ -6,8 +6,8 @@ github.com/Masterminds/semver/v3 v3.2.0 h1:3MEsd0SM6jqZojhjLWWeBY+Kcjy9i6MQAeY7Y
 github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Masterminds/sprig/v3 v3.2.3 h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA=
 github.com/Masterminds/sprig/v3 v3.2.3/go.mod h1:rXcFaZ2zZbLRJv/xSysmlgIM1u11eBaRMhvYXJNkGuM=
-github.com/SAP/go-hdb v1.3.13 h1:oXJ+F6ATXVccGHvCq9hWOl5mI7P7PAgWlngs0STxa6k=
-github.com/SAP/go-hdb v1.3.13/go.mod h1:WqIokmWYF7WnCvqK+OvBSa5cBbmNDE0yKR3MoN6/3Dc=
+github.com/SAP/go-hdb v1.3.15 h1:gKamrfjGqmAxdH1N4+Udvoka2og1R68PpM133Rd/s+E=
+github.com/SAP/go-hdb v1.3.15/go.mod h1:WqIokmWYF7WnCvqK+OvBSa5cBbmNDE0yKR3MoN6/3Dc=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/conduitio/conduit-connector-protocol v0.5.0 h1:Rr2SsDAvWDryQArvonwPoXBELQA2wRXr49xBLrAtBaM=
