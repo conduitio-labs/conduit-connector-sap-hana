@@ -140,6 +140,9 @@ func afterTest(_ *testing.T, cfg map[string]string) func(t *testing.T) {
 				t.Errorf("rows scan: %v", er)
 			}
 		}
+		if rows.Err() != nil {
+			t.Errorf("iterate rows error: %s", rows.Err())
+		}
 		if name != "" {
 			_, err = db.Exec(fmt.Sprintf(queryDropTestTable, name))
 			if err != nil {

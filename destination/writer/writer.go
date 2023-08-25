@@ -62,7 +62,7 @@ func New(ctx context.Context, params Params) (*Writer, error) {
 }
 
 // Close closes the underlying db connection.
-func (w *Writer) Close(ctx context.Context) error {
+func (w *Writer) Close(context.Context) error {
 	err := w.db.Close()
 	if err != nil {
 		return fmt.Errorf("close db: %w", err)

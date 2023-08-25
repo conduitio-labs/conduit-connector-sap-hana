@@ -157,6 +157,9 @@ func TestIntegrationDestination_Write_Insert_Success(t *testing.T) {
 			t.Error(err)
 		}
 	}
+	if rows.Err() != nil {
+		t.Errorf("iterate rows error: %s", rows.Err())
+	}
 
 	if id != preparedID {
 		t.Error(errors.New("id and prepared id not equal"))
@@ -277,6 +280,9 @@ func TestIntegrationDestination_Write_Update_Success(t *testing.T) {
 			t.Error(err)
 		}
 	}
+	if rows.Err() != nil {
+		t.Errorf("iterate rows error: %s", rows.Err())
+	}
 
 	if clVarchar != preparedVarchar {
 		t.Error(errors.New("clVarchar and preparedVarchar not equal"))
@@ -396,6 +402,9 @@ func TestIntegrationDestination_Write_Update_Composite_Keys_Success(t *testing.T
 		if err != nil {
 			t.Error(err)
 		}
+	}
+	if rows.Err() != nil {
+		t.Errorf("iterate rows error: %s", rows.Err())
 	}
 
 	if clVarchar != preparedVarchar {
@@ -520,6 +529,9 @@ func TestIntegrationDestination_Write_Delete_Success(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	}
+	if rows.Err() != nil {
+		t.Errorf("iterate rows error: %s", rows.Err())
 	}
 
 	if count != 0 {

@@ -163,6 +163,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 			return TableInfo{}, fmt.Errorf("table %s doesn't exist", tableName)
 		}
 	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
+	}
 
 	columnTypes := make(map[string]string)
 	columnLengths := make(map[string]int)
@@ -172,6 +175,7 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var (
@@ -188,11 +192,15 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 		columnLengths[columnName] = length
 		columnScales[columnName] = scale
 	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
+	}
 
 	rows, err = querier.QueryContext(ctx, queryGetPrimaryKeys, strings.ToUpper(tableName))
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var columnName string
@@ -202,6 +210,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 		}
 
 		primaryKeys = append(primaryKeys, columnName)
+	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
 	}
 
 	return TableInfo{
@@ -214,7 +225,7 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 
 // ConvertStructuredData converts a sdk.StructureData values to a proper database types.
 func ConvertStructuredData(
-	ctx context.Context,
+	_ context.Context,
 	columnTypes map[string]string,
 	data sdk.StructuredData,
 ) (sdk.StructuredData, error) {
@@ -277,7 +288,7 @@ func ConvertStructuredData(
 }
 
 // TransformRow converts row map values to appropriate Go types, based on the columnTypes.
-func TransformRow(ctx context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
+func TransformRow(_ context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
 	result := make(map[string]any, len(row))
 
 	for key, value := range row {

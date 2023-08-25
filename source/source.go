@@ -44,7 +44,7 @@ func (s *Source) Parameters() map[string]sdk.Parameter {
 }
 
 // Configure parses and stores configurations, returns an error in case of invalid configuration.
-func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
+func (s *Source) Configure(_ context.Context, cfg map[string]string) error {
 	if err := sdk.Util.ParseConfig(cfg, &s.config); err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}

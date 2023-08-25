@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/golang/mock/gomock"
 	"github.com/matryer/is"
+	"go.uber.org/mock/gomock"
 
 	"github.com/conduitio-labs/conduit-connector-sap-hana/destination/mock"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/destination/writer"

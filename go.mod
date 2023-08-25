@@ -1,16 +1,16 @@
 module github.com/conduitio-labs/conduit-connector-sap-hana
 
-go 1.19
+go 1.20
 
 require (
 	github.com/SAP/go-hdb v0.111.7
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.5.0
-	github.com/golang/mock v1.6.0
 	github.com/huandu/go-sqlbuilder v1.18.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/matryer/is v1.4.0
 	go.uber.org/goleak v1.2.0
+	go.uber.org/mock v0.2.0
 )
 
 require (
