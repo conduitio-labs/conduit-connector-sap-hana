@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build sqlserver
+//go:build saphana
 
-package main
+package saphana
 
 import (
 	_ "github.com/conduitio/conduit-connector-sdk/cmd/paramgen"
