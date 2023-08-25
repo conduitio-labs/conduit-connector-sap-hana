@@ -18,5 +18,6 @@ package saphana
 
 import (
 	_ "github.com/conduitio/conduit-connector-sdk/cmd/paramgen"
+	_ "github.com/golang/mock/mockgen"
 	_ "go.uber.org/mock/gomock"
 )
