@@ -11,18 +11,20 @@ linters-settings:
     min-complexity: 20
   goconst:
     ignore-tests: true
-  goheader:
-    template-path: '.golangci.goheader.template'
   lll:
     line-length: 120
-
+  goheader:
+    template-path: '.golangci.goheader.template'
+    values:
+      regexp:
+        copyright-year: 20[2-9]\d
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
     - bodyclose
-    - depguard
+#    - depguard
     - dogsled
     - durationcheck
     - errcheck

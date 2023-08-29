@@ -1,4 +1,4 @@
-.PHONY: build test lint
+.PHONY: build test lint paramgen mockgen download install-tools
 
 VERSION=$(shell git describe --tags --dirty --always)
 
@@ -19,3 +19,12 @@ paramgen:
 mockgen:
 	mockgen -package mock -source destination/interface.go -destination destination/mock/destination.go
 	mockgen -package mock -source source/interface.go -destination source/mock/iterator.go
+
+download:
+	@echo Download go.mod dependencies
+	@go mod download
+
+install-tools: download
+	@echo Installing tools from tools.go
+	@go list -e -f '{{ join .Imports "\n" }}' tools.go | xargs -tI % go install %
+	@go mod tidy

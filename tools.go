@@ -1,4 +1,4 @@
-// Copyright © 2023 Meroxa, Inc. & Yalantis
+// Copyright © 2023 Meroxa, Inc & Yalantis.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package saphana implements SAP HANA database connector for Conduit.
-// It provides both, a source and a destination SAP HANA connector.
+//go:build saphana
+
 package saphana
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
-	"github.com/conduitio-labs/conduit-connector-sap-hana/destination"
-	"github.com/conduitio-labs/conduit-connector-sap-hana/source"
+	_ "github.com/conduitio/conduit-connector-sdk/cmd/paramgen"
+	_ "go.uber.org/mock/mockgen"
 )
-
-var Connector = sdk.Connector{
-	NewSpecification: Specification,
-	NewSource:        source.New,
-	NewDestination:   destination.New,
-}

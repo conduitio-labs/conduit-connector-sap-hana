@@ -19,10 +19,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/SAP/go-hdb/driver"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -47,7 +51,8 @@ const (
 	varbinaryType = "VARBINARY"
 
 	// sap hana decimal type.
-	decimalType = "DECIMAL"
+	smallDecimalType = "SMALLDECIMAL"
+	decimalType      = "DECIMAL"
 )
 
 const (
@@ -158,6 +163,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 			return TableInfo{}, fmt.Errorf("table %s doesn't exist", tableName)
 		}
 	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
+	}
 
 	columnTypes := make(map[string]string)
 	columnLengths := make(map[string]int)
@@ -167,6 +175,7 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var (
@@ -183,11 +192,15 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 		columnLengths[columnName] = length
 		columnScales[columnName] = scale
 	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
+	}
 
 	rows, err = querier.QueryContext(ctx, queryGetPrimaryKeys, strings.ToUpper(tableName))
 	if err != nil {
 		return TableInfo{}, fmt.Errorf("query get column types: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var columnName string
@@ -197,6 +210,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 		}
 
 		primaryKeys = append(primaryKeys, columnName)
+	}
+	if rows.Err() != nil {
+		return TableInfo{}, fmt.Errorf("iterate rows error: %w", rows.Err())
 	}
 
 	return TableInfo{
@@ -209,7 +225,7 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 
 // ConvertStructuredData converts a sdk.StructureData values to a proper database types.
 func ConvertStructuredData(
-	ctx context.Context,
+	_ context.Context,
 	columnTypes map[string]string,
 	data sdk.StructuredData,
 ) (sdk.StructuredData, error) {
@@ -224,8 +240,7 @@ func ConvertStructuredData(
 
 		// sap hana doesn't have json type or similar.
 		// string types can replace it.
-		switch reflect.TypeOf(value).Kind() { //nolint:exhaustive // need to check only these cases
-		case reflect.Map, reflect.Slice:
+		if reflect.TypeOf(value).Kind() == reflect.Map {
 			bs, err := json.Marshal(value)
 			if err != nil {
 				return nil, fmt.Errorf("marshal: %w", err)
@@ -257,6 +272,13 @@ func ConvertStructuredData(
 			}
 
 			result[key] = timeValue
+		case decimalType, smallDecimalType:
+			decValue, err := convertToDecimal(value)
+			if err != nil {
+				return nil, fmt.Errorf("convert to decimal: %w", err)
+			}
+
+			result[key] = decValue
 		default:
 			result[key] = value
 		}
@@ -266,7 +288,7 @@ func ConvertStructuredData(
 }
 
 // TransformRow converts row map values to appropriate Go types, based on the columnTypes.
-func TransformRow(ctx context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
+func TransformRow(_ context.Context, row map[string]any, columnTypes map[string]string) (map[string]any, error) {
 	result := make(map[string]any, len(row))
 
 	for key, value := range row {
@@ -305,4 +327,68 @@ func parseToTime(val string) (time.Time, error) {
 	}
 
 	return time.Time{}, fmt.Errorf("%s - %w", val, ErrInvalidTimeLayout)
+}
+
+// convertToDecimal - convert variable to special Sap HANA decimal type.
+func convertToDecimal(val any) (*driver.Decimal, error) {
+	switch reflect.TypeOf(val).Kind() { //nolint:exhaustive,nolintlint
+	case reflect.Float64, reflect.Float32:
+		return convertStrToDecimal(fmt.Sprintf("%g", val))
+	case reflect.String:
+		strVal := fmt.Sprintf("%s", val)
+		if strings.Contains(strVal, ".") { // usual case, for example 110.45
+			return convertStrToDecimal(strVal)
+		}
+		if strings.Contains(strVal, "/") { // sap hana case, for example  11045/100
+			parts := strings.Split(strVal, "/")
+			if len(parts) != 2 { //nolint:gomnd,nolintlint
+				return nil, ErrInvalidDecimalStringPresentation
+			}
+
+			a, err := strconv.ParseInt(parts[0], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse to int64: %w", err)
+			}
+
+			b, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parse to int64: %w", err)
+			}
+
+			return (*driver.Decimal)(big.NewRat(a, b)), nil
+		}
+	case reflect.Int64, reflect.Int32:
+		intVal, ok := val.(int64)
+		if !ok {
+			return nil, ErrCannotConvertToInt
+		}
+
+		return (*driver.Decimal)(big.NewRat(intVal, 1)), nil
+	default:
+		return nil, ErrCannotConvertValueToDecimal
+	}
+
+	return nil, ErrCannotConvertValueToDecimal
+}
+
+func convertStrToDecimal(strVal string) (*driver.Decimal, error) {
+	parts := strings.Split(strVal, ".")
+	if len(parts) == 1 { //nolint:gomnd,nolintlint
+		i, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse to int64: %w", err)
+		}
+
+		return (*driver.Decimal)(big.NewRat(i, 1)), nil
+	}
+	if len(parts) == 2 { //nolint:gomnd,nolintlint
+		ft, err := strconv.ParseInt(strings.Join(parts, ""), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("parse to int64: %w", err)
+		}
+
+		return (*driver.Decimal)(big.NewRat(ft, int64(math.Pow(10, float64(len(parts[1])))))), nil //nolint:gomnd,nolintlint
+	}
+
+	return nil, ErrInvalidDecimalStringPresentation
 }

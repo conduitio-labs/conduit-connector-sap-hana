@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/mock"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/position"

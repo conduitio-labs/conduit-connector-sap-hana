@@ -208,7 +208,7 @@ func TestSource_Snapshot_Success(t *testing.T) {
 	is.Equal(wantedThirdBytes, r.Payload.After.Bytes())
 
 	// check ErrBackoffRetry.
-	r, err = s.Read(ctx)
+	_, err = s.Read(ctx)
 	is.Equal(sdk.ErrBackoffRetry, err)
 
 	err = s.Teardown(ctx)
@@ -624,13 +624,13 @@ func TestSource_Snapshot_Off(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := s.Read(ctx)
+	_, err = s.Read(ctx)
 	if !errors.Is(err, sdk.ErrBackoffRetry) {
 		t.Fatal(err)
 	}
 
 	// Check read. Snapshot data must be missed.
-	r, err = s.Read(ctx)
+	r, err := s.Read(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -681,6 +681,9 @@ func clearData(ctx context.Context, db *sqlx.DB, tableName string) error {
 		if er != nil {
 			return fmt.Errorf("rows scan: %w", er)
 		}
+	}
+	if rows.Err() != nil {
+		return fmt.Errorf("iterate rows error: %w", rows.Err())
 	}
 
 	_, err = db.ExecContext(ctx, fmt.Sprintf(queryDropTable, name))
