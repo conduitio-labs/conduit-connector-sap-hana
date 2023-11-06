@@ -6,7 +6,7 @@ require (
 	github.com/SAP/go-hdb v1.5.8
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.7.2
-	github.com/huandu/go-sqlbuilder v1.22.0
+	github.com/huandu/go-sqlbuilder v1.23.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
