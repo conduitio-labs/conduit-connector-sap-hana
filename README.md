@@ -7,9 +7,9 @@ It provides the source SAP HANA connector.
 
 ### Prerequisites
 
-- [Go](https://go.dev/) 1.20
+- [Go](https://go.dev/) 1.21
 - [Conduit Paramgen](https://github.com/ConduitIO/conduit-connector-sdk/tree/main/cmd/paramgen)
-- (optional) [golangci-lint](https://github.com/golangci/golangci-lint) 1.50.1
+- (optional) [golangci-lint](https://github.com/golangci/golangci-lint) 
 
 ### How to build it
 
