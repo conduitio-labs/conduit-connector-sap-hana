@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build saphana
+//go:build tools
 
-package saphana
+package main
 
 import (
 	_ "github.com/conduitio/conduit-connector-sdk/cmd/paramgen"
+	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "go.uber.org/mock/mockgen"
 )
