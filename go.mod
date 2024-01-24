@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/SAP/go-hdb v1.7.6
+	github.com/SAP/go-hdb v1.7.7
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.8.0
 	github.com/golangci/golangci-lint v1.55.2
