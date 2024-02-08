@@ -72,7 +72,6 @@ func (d *Destination) Open(ctx context.Context) error {
 		DB:    db,
 		Table: d.config.Table,
 	})
-
 	if err != nil {
 		return fmt.Errorf("new writer: %w", err)
 	}
