@@ -10,7 +10,7 @@ test:
 	go test $(GOTEST_FLAGS) -race ./...
 
 lint:
-	golangci-lint run --config .golangci.yml
+	golangci-lint run
 
 paramgen:
 	paramgen -path=./destination -output=destination_params.go Config
