@@ -3,7 +3,7 @@
 ## General
 
 The [SAP HANA](https://www.sap.com/products/technology-platform/hana/what-is-sap-hana.html) connector is one of Conduit plugins.
-It provides the source SAP HANA connector.
+It provides SAP HANA source and destination connectors.
 
 ### Prerequisites
 
