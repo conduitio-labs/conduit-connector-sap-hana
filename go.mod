@@ -3,7 +3,7 @@ module github.com/conduitio-labs/conduit-connector-sap-hana
 go 1.22.2
 
 require (
-	github.com/SAP/go-hdb v1.8.27
+	github.com/SAP/go-hdb v1.8.30
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.9.1
 	github.com/golangci/golangci-lint v1.58.1
@@ -145,7 +145,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
-	github.com/prometheus/procfs v0.14.0 // indirect
+	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.2 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
