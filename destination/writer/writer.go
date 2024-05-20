@@ -195,7 +195,7 @@ func (w *Writer) buildDeleteQuery(table string, keys map[string]any) (string, []
 // structurizeData converts sdk.Data to sdk.StructuredData.
 func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
-		return nil, nil
+		return nil, nil //nolint:nilnil // returning nil data is valid here
 	}
 
 	structuredData := make(sdk.StructuredData)
