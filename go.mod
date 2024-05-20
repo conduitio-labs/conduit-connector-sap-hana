@@ -7,7 +7,7 @@ require (
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.9.1
 	github.com/golangci/golangci-lint v1.58.1
-	github.com/huandu/go-sqlbuilder v1.27.1
+	github.com/huandu/go-sqlbuilder v1.27.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
