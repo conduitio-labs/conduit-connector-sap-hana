@@ -12,6 +12,9 @@ test:
 lint:
 	golangci-lint run
 
+generate: paramgen mockgen
+	go generate ./...
+
 paramgen:
 	paramgen -path=./destination -output=destination_params.go Config
 	paramgen -path=./source -output=source_params.go Config
