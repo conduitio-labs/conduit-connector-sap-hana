@@ -3,7 +3,7 @@ module github.com/conduitio-labs/conduit-connector-sap-hana
 go 1.22.2
 
 require (
-	github.com/SAP/go-hdb v1.9.8
+	github.com/SAP/go-hdb v1.9.9
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/conduitio/conduit-connector-sdk v0.9.1
 	github.com/golangci/golangci-lint v1.59.1
@@ -132,6 +132,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/moricho/tparallel v0.3.1 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
@@ -144,7 +145,7 @@ require (
 	github.com/polyfloyd/go-errorlint v1.5.2 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.54.0 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.2 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect
@@ -209,7 +210,7 @@ require (
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
