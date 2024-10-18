@@ -19,9 +19,8 @@ import (
 	"fmt"
 
 	"github.com/SAP/go-hdb/driver"
-	"github.com/jmoiron/sqlx"
-
 	"github.com/conduitio-labs/conduit-connector-sap-hana/config"
+	"github.com/jmoiron/sqlx"
 )
 
 const (

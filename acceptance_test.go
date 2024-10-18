@@ -24,9 +24,9 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/jmoiron/sqlx"
-
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/goleak"
 )
 
@@ -47,23 +47,23 @@ type driver struct {
 	counter int64
 }
 
-// GenerateRecord generates a random sdk.Record.
-func (d *driver) GenerateRecord(t *testing.T, operation sdk.Operation) sdk.Record {
+// GenerateRecord generates a random opencdc.Record.
+func (d *driver) GenerateRecord(t *testing.T, operation opencdc.Operation) opencdc.Record {
 	t.Helper()
 
 	atomic.AddInt64(&d.counter, 1)
 
-	return sdk.Record{
+	return opencdc.Record{
 		Position:  nil,
 		Operation: operation,
 		Metadata: map[string]string{
 			tableKey: d.Config.DestinationConfig[tableKey],
 		},
-		Key: sdk.StructuredData{
+		Key: opencdc.StructuredData{
 			"ID": d.counter,
 		},
-		Payload: sdk.Change{
-			After: sdk.RawData(
+		Payload: opencdc.Change{
+			After: opencdc.RawData(
 				fmt.Sprintf(
 					`{"ID":%d,"NAME":"%s"}`, d.counter, gofakeit.Name(),
 				),

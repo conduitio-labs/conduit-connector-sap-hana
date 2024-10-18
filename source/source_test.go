@@ -21,11 +21,10 @@ import (
 	"reflect"
 	"testing"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
-	"go.uber.org/mock/gomock"
-
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/mock"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/position"
+	"github.com/conduitio/conduit-commons/opencdc"
+	"go.uber.org/mock/gomock"
 )
 
 //nolint:tparallel,paralleltest,nolintlint
@@ -199,7 +198,7 @@ func TestSource_Read(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		ctx := context.Background()
 
-		st := make(sdk.StructuredData)
+		st := make(opencdc.StructuredData)
 		st["key"] = "value"
 
 		pos, _ := json.Marshal(position.Position{
@@ -208,11 +207,11 @@ func TestSource_Read(t *testing.T) {
 			CDCLastID:                0,
 		})
 
-		record := sdk.Record{
+		record := opencdc.Record{
 			Position: pos,
 			Metadata: nil,
 			Key:      st,
-			Payload:  sdk.Change{After: st},
+			Payload:  opencdc.Change{After: st},
 		}
 
 		it := mock.NewMockIterator(ctrl)
@@ -260,7 +259,7 @@ func TestSource_Read(t *testing.T) {
 
 		it := mock.NewMockIterator(ctrl)
 		it.EXPECT().HasNext(ctx).Return(true, nil)
-		it.EXPECT().Next(ctx).Return(sdk.Record{}, errors.New("key does not exist"))
+		it.EXPECT().Next(ctx).Return(opencdc.Record{}, errors.New("key does not exist"))
 
 		s := Source{
 			iterator: it,

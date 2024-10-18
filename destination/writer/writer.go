@@ -19,11 +19,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
+	"github.com/conduitio/conduit-commons/opencdc"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/conduitio-labs/conduit-connector-sap-hana/columntypes"
 )
 
 const (
@@ -72,7 +71,7 @@ func (w *Writer) Close(context.Context) error {
 }
 
 // Delete deletes records by a key.
-func (w *Writer) Delete(ctx context.Context, record sdk.Record) error {
+func (w *Writer) Delete(ctx context.Context, record opencdc.Record) error {
 	tableName := w.getTableName(record.Metadata)
 
 	keys, err := w.structurizeData(record.Key)
@@ -95,7 +94,7 @@ func (w *Writer) Delete(ctx context.Context, record sdk.Record) error {
 }
 
 // Update updates records by a key.
-func (w *Writer) Update(ctx context.Context, record sdk.Record) error {
+func (w *Writer) Update(ctx context.Context, record opencdc.Record) error {
 	tableName := w.getTableName(record.Metadata)
 
 	payload, err := w.structurizeData(record.Payload.After)
@@ -144,7 +143,7 @@ func (w *Writer) getTableName(metadata map[string]string) string {
 }
 
 // Insert row to sql server db.
-func (w *Writer) Insert(ctx context.Context, record sdk.Record) error {
+func (w *Writer) Insert(ctx context.Context, record opencdc.Record) error {
 	tableName := w.getTableName(record.Metadata)
 
 	payload, err := w.structurizeData(record.Payload.After)
@@ -192,13 +191,13 @@ func (w *Writer) buildDeleteQuery(table string, keys map[string]any) (string, []
 	return query, args
 }
 
-// structurizeData converts sdk.Data to sdk.StructuredData.
-func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
+// structurizeData converts opencdc.Data to opencdc.StructuredData.
+func (w *Writer) structurizeData(data opencdc.Data) (opencdc.StructuredData, error) {
 	if data == nil || len(data.Bytes()) == 0 {
 		return nil, nil //nolint:nilnil // returning nil data is valid here
 	}
 
-	structuredData := make(sdk.StructuredData)
+	structuredData := make(opencdc.StructuredData)
 	if err := json.Unmarshal(data.Bytes(), &structuredData); err != nil {
 		return nil, fmt.Errorf("unmarshal data into structured data: %w", err)
 	}
@@ -208,7 +207,7 @@ func (w *Writer) structurizeData(data sdk.Data) (sdk.StructuredData, error) {
 
 // extractColumnsAndValues turns the payload into slices of
 // columns and values.
-func (w *Writer) extractColumnsAndValues(payload sdk.StructuredData) ([]string, []any) {
+func (w *Writer) extractColumnsAndValues(payload opencdc.StructuredData) ([]string, []any) {
 	var (
 		columns []string
 		values  []any

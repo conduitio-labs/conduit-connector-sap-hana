@@ -19,10 +19,11 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	"github.com/conduitio-labs/conduit-connector-sap-hana/helper"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/source/iterator"
+	"github.com/conduitio/conduit-commons/config"
+	"github.com/conduitio/conduit-commons/opencdc"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 // Source connector.
@@ -38,14 +39,14 @@ func New() sdk.Source {
 	return &Source{}
 }
 
-// Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
-func (s *Source) Parameters() map[string]sdk.Parameter {
+// Parameters returns a map of named config.Parameters that describe how to configure the Destination.
+func (s *Source) Parameters() config.Parameters {
 	return s.config.Parameters()
 }
 
 // Configure parses and stores configurations, returns an error in case of invalid configuration.
-func (s *Source) Configure(_ context.Context, cfg map[string]string) error {
-	if err := sdk.Util.ParseConfig(cfg, &s.config); err != nil {
+func (s *Source) Configure(_ context.Context, cfg config.Config) error {
+	if err := sdk.Util.ParseConfig(ctx, cfg, &s.config, New().Parameters()); err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
@@ -61,7 +62,7 @@ func (s *Source) Configure(_ context.Context, cfg map[string]string) error {
 }
 
 // Open prepare the plugin to start sending records from the given position.
-func (s *Source) Open(ctx context.Context, rp sdk.Position) error {
+func (s *Source) Open(ctx context.Context, rp opencdc.Position) error {
 	db, err := helper.ConnectToDB(s.config.Auth)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
@@ -93,19 +94,19 @@ func (s *Source) Open(ctx context.Context, rp sdk.Position) error {
 }
 
 // Read gets the next object from the Sap Hana db.
-func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
+func (s *Source) Read(ctx context.Context) (opencdc.Record, error) {
 	hasNext, err := s.iterator.HasNext(ctx)
 	if err != nil {
-		return sdk.Record{}, fmt.Errorf("source has next: %w", err)
+		return opencdc.Record{}, fmt.Errorf("source has next: %w", err)
 	}
 
 	if !hasNext {
-		return sdk.Record{}, sdk.ErrBackoffRetry
+		return opencdc.Record{}, sdk.ErrBackoffRetry
 	}
 
 	r, err := s.iterator.Next(ctx)
 	if err != nil {
-		return sdk.Record{}, fmt.Errorf("source next: %w", err)
+		return opencdc.Record{}, fmt.Errorf("source next: %w", err)
 	}
 
 	return r, nil
@@ -124,7 +125,7 @@ func (s *Source) Teardown(ctx context.Context) error {
 }
 
 // Ack check if record with position was recorded.
-func (s *Source) Ack(ctx context.Context, p sdk.Position) error {
+func (s *Source) Ack(ctx context.Context, p opencdc.Position) error {
 	err := s.iterator.Ack(ctx, p)
 	if err != nil {
 		return fmt.Errorf("iterator ack: %w", err)

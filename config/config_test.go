@@ -125,7 +125,7 @@ func TestConfig(t *testing.T) {
 			t.Parallel()
 			var got Config
 
-			err := sdk.Util.ParseConfig(tt.args.cfg, &got)
+			err := sdk.Util.ParseConfig(ctx, tt.args.cfg, &got)
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("parse error = \"%s\", wantErr %t", err.Error(), tt.wantErr)
