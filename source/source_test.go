@@ -40,6 +40,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "success, DSN Auth",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "DSN",
 				"auth.dsn":       "hdb://name:password@host:443?TLSServerName=name",
 			},
@@ -49,6 +50,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "success, Basic Auth",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "Basic",
 				"auth.host":      "host",
 				"auth.username":  "username",
@@ -60,6 +62,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "success, JWT Auth",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "JWT",
 				"auth.host":      "host",
 				"auth.token":     "token",
@@ -70,6 +73,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "success, X509 Auth",
 			cfg: map[string]string{
 				"table":                   "CLIENTS",
+				"orderingColumn":          "foo",
 				"auth.mechanism":          "X509",
 				"auth.host":               "host",
 				"auth.clientCertFilePath": "/tmp/certfile",
@@ -81,6 +85,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, DSN missed for DSN AUTH",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "DSN",
 			},
 
@@ -91,6 +96,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, host missed for Basic AUTH",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "Basic",
 				"auth.username":  "username",
 				"auth.password":  "password",
@@ -103,6 +109,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, username missed for Basic AUTH",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "Basic",
 				"auth.host":      "host",
 				"auth.password":  "password",
@@ -114,6 +121,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, password missed for Basic AUTH",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "Basic",
 				"auth.host":      "host",
 				"auth.username":  "username",
@@ -125,6 +133,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, token missed for JWT AUTH",
 			cfg: map[string]string{
 				"table":          "CLIENTS",
+				"orderingColumn": "foo",
 				"auth.mechanism": "JWT",
 				"auth.host":      "host",
 			},
@@ -135,6 +144,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, host missed for X509 auth",
 			cfg: map[string]string{
 				"table":                   "CLIENTS",
+				"orderingColumn":          "foo",
 				"auth.mechanism":          "X509",
 				"auth.clientCertFilePath": "/tmp/certfile",
 				"auth.clientKeyFilePath":  "/tmp/keyfile",
@@ -146,6 +156,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, clientCertFile missed for X509 auth",
 			cfg: map[string]string{
 				"table":                  "CLIENTS",
+				"orderingColumn":         "foo",
 				"auth.mechanism":         "X509",
 				"auth.host":              "host",
 				"auth.clientKeyFilePath": "/tmp/keyfile",
@@ -157,6 +168,7 @@ func TestSource_Configure(t *testing.T) {
 			name: "failed, clientKeyFile missed for X509 auth",
 			cfg: map[string]string{
 				"table":                   "CLIENTS",
+				"orderingColumn":          "foo",
 				"auth.mechanism":          "X509",
 				"auth.host":               "host",
 				"auth.clientCertFilePath": "/tmp/certfile",
