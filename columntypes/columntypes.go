@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/SAP/go-hdb/driver"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 )
 
 const (
@@ -227,9 +227,9 @@ func GetTableInfo(ctx context.Context, querier Querier, tableName string) (Table
 func ConvertStructuredData(
 	_ context.Context,
 	columnTypes map[string]string,
-	data sdk.StructuredData,
-) (sdk.StructuredData, error) {
-	result := make(sdk.StructuredData, len(data))
+	data opencdc.StructuredData,
+) (opencdc.StructuredData, error) {
+	result := make(opencdc.StructuredData, len(data))
 
 	for key, value := range data {
 		if value == nil {

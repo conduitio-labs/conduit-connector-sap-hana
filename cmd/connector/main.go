@@ -15,9 +15,8 @@
 package main
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	saphana "github.com/conduitio-labs/conduit-connector-sap-hana"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 func main() {

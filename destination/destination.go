@@ -18,10 +18,11 @@ import (
 	"context"
 	"fmt"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	"github.com/conduitio-labs/conduit-connector-sap-hana/destination/writer"
 	"github.com/conduitio-labs/conduit-connector-sap-hana/helper"
+	"github.com/conduitio/conduit-commons/config"
+	"github.com/conduitio/conduit-commons/opencdc"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 // Destination SAP HANA Connector persists records to a sap hana database.
@@ -37,14 +38,14 @@ func New() sdk.Destination {
 	return &Destination{}
 }
 
-// Parameters returns a map of named sdk.Parameters that describe how to configure the Destination.
-func (d *Destination) Parameters() map[string]sdk.Parameter {
+// Parameters returns a map of named config.Parameters that describe how to configure the Destination.
+func (d *Destination) Parameters() config.Parameters {
 	return d.config.Parameters()
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg map[string]string) error {
-	if err := sdk.Util.ParseConfig(cfg, &d.config); err != nil {
+func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
+	if err := sdk.Util.ParseConfig(ctx, cfg, &d.config, New().Parameters()); err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
@@ -80,7 +81,7 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 // Write writes a record into a Destination.
-func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	for i, record := range records {
 		err := sdk.Util.Destination.Route(ctx, record,
 			d.writer.Insert,
