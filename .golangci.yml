@@ -63,7 +63,6 @@ linters:
     - nlreturn
     - noctx
     - nolintlint
-    - paralleltest
     - predeclared
     - rowserrcheck
     - staticcheck
@@ -72,7 +71,6 @@ linters:
     - tagliatelle
     - tenv
     - thelper
-    - tparallel
     - typecheck
     - unconvert
     - unparam

@@ -44,7 +44,7 @@ func (d *Destination) Parameters() config.Parameters {
 }
 
 // Configure parses and initializes the config.
-func (d *Destination) Configure(_ context.Context, cfg config.Config) error {
+func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
 	if err := sdk.Util.ParseConfig(ctx, cfg, &d.config, New().Parameters()); err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}

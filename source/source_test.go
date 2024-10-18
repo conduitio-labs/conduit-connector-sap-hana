@@ -27,10 +27,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-//nolint:tparallel,paralleltest,nolintlint
 func TestSource_Configure(t *testing.T) {
-	t.Parallel()
-
 	s := Source{}
 
 	tests := []struct {
