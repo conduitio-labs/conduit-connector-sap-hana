@@ -341,7 +341,7 @@ func convertToDecimal(val any) (*driver.Decimal, error) {
 		}
 		if strings.Contains(strVal, "/") { // sap hana case, for example  11045/100
 			parts := strings.Split(strVal, "/")
-			if len(parts) != 2 { //nolint:gomnd,nolintlint
+			if len(parts) != 2 { //nolint:mnd,nolintlint
 				return nil, ErrInvalidDecimalStringPresentation
 			}
 
@@ -373,7 +373,7 @@ func convertToDecimal(val any) (*driver.Decimal, error) {
 
 func convertStrToDecimal(strVal string) (*driver.Decimal, error) {
 	parts := strings.Split(strVal, ".")
-	if len(parts) == 1 { //nolint:gomnd,nolintlint
+	if len(parts) == 1 { //nolint:mnd,nolintlint
 		i, err := strconv.ParseInt(parts[0], 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse to int64: %w", err)
@@ -381,13 +381,13 @@ func convertStrToDecimal(strVal string) (*driver.Decimal, error) {
 
 		return (*driver.Decimal)(big.NewRat(i, 1)), nil
 	}
-	if len(parts) == 2 { //nolint:gomnd,nolintlint
+	if len(parts) == 2 { //nolint:mnd,nolintlint
 		ft, err := strconv.ParseInt(strings.Join(parts, ""), 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse to int64: %w", err)
 		}
 
-		return (*driver.Decimal)(big.NewRat(ft, int64(math.Pow(10, float64(len(parts[1])))))), nil //nolint:gomnd,nolintlint
+		return (*driver.Decimal)(big.NewRat(ft, int64(math.Pow(10, float64(len(parts[1])))))), nil //nolint:mnd,nolintlint
 	}
 
 	return nil, ErrInvalidDecimalStringPresentation
