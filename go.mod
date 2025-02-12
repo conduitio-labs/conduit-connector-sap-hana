@@ -8,7 +8,7 @@ require (
 	github.com/conduitio/conduit-commons v0.5.1
 	github.com/conduitio/conduit-connector-sdk v0.12.0
 	github.com/golangci/golangci-lint v1.64.2
-	github.com/huandu/go-sqlbuilder v1.33.1
+	github.com/huandu/go-sqlbuilder v1.34.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/matryer/is v1.4.1
 	go.uber.org/goleak v1.3.0
