@@ -1,6 +1,7 @@
 module github.com/conduitio-labs/conduit-connector-sap-hana
 
 go 1.24.2
+
 require (
 	github.com/SAP/go-hdb v1.13.4
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
