@@ -32,8 +32,8 @@ github.com/Masterminds/sprig/v3 v3.3.0 h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe
 github.com/Masterminds/sprig/v3 v3.3.0/go.mod h1:Zy1iXRYNqNLUolqCpL4uhk6SHUMAOSCzdgBfDb35Lz0=
 github.com/OpenPeeDeeP/depguard/v2 v2.2.1 h1:vckeWVESWp6Qog7UZSARNqfu/cZqvki8zsuj3piCMx4=
 github.com/OpenPeeDeeP/depguard/v2 v2.2.1/go.mod h1:q4DKzC4UcVaAvcfd41CZh0PWpGgzrVxUYBlgKNGquUo=
-github.com/SAP/go-hdb v1.13.11 h1:DhHGUfeeFS9BlgGAtw+Ln24PCJ5T0IeNwwfMSxC677M=
-github.com/SAP/go-hdb v1.13.11/go.mod h1:FaFpT7GJwxdou1weby+gb+K3psukpAspvln/LJzVFFE=
+github.com/SAP/go-hdb v1.13.12 h1:EoD2QMeswug3AjDFLd8Rf/2xHV4OjFIjLow3hNWIox8=
+github.com/SAP/go-hdb v1.13.12/go.mod h1:Y4KYjtpAIQr/a/EVtJuHzd08T+nC6GV0L/9X4JTQrGc=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=
 github.com/alecthomas/assert/v2 v2.11.0/go.mod h1:Bze95FyfUr7x34QZrjL+XP+0qgp/zg8yS+TtBj1WA3k=
 github.com/alecthomas/go-check-sumtype v0.3.1 h1:u9aUvbGINJxLVXiFvHUlPEaD7VDULsrxJb4Aq31NLkU=
